@@ -20,6 +20,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       title: 'Satisfy Your Cravings',
       subtitle: 'Discover bold Dhakaiya flavors with juicy burgers and more.',
       icon: Icons.lunch_dining_rounded,
+      logoAsset: 'assets/logo.png',
       bgColor: AppColors.primary,
     ),
     _OnboardingData(
@@ -153,8 +154,13 @@ class _OnboardingPage extends StatelessWidget {
       width: 250,
       height: 250,
       decoration: BoxDecoration(
-        color: Colors.white,
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFFFFFDF6), Color(0xFFFFFFFF)],
+        ),
         borderRadius: BorderRadius.circular(36),
+        border: Border.all(color: Colors.white, width: 1.2),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.14),
@@ -163,7 +169,42 @@ class _OnboardingPage extends StatelessWidget {
           ),
         ],
       ),
-      child: Icon(page.icon, size: 126, color: AppColors.secondary),
+      child: Stack(
+        children: [
+          Positioned(
+            left: 20,
+            top: 20,
+            child: Container(
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.35),
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+          Positioned(
+            right: 28,
+            bottom: 24,
+            child: Container(
+              width: 22,
+              height: 22,
+              decoration: BoxDecoration(
+                color: AppColors.secondary.withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+          Center(
+            child: page.logoAsset != null
+                ? Padding(
+                    padding: const EdgeInsets.all(18),
+                    child: Image.asset(page.logoAsset!, fit: BoxFit.contain),
+                  )
+                : Icon(page.icon, size: 126, color: AppColors.secondary),
+          ),
+        ],
+      ),
     );
 
     return Column(
@@ -214,10 +255,12 @@ class _OnboardingData {
     required this.subtitle,
     required this.icon,
     required this.bgColor,
+    this.logoAsset,
   });
 
   final String title;
   final String subtitle;
   final IconData icon;
   final Color bgColor;
+  final String? logoAsset;
 }

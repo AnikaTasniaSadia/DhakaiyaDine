@@ -113,10 +113,12 @@ class _LoginScreenState extends State<LoginScreen>
                               ),
                             ],
                           ),
-                          child: const Icon(
-                            Icons.lunch_dining_rounded,
-                            size: 84,
-                            color: AppColors.secondary,
+                          child: const Padding(
+                            padding: EdgeInsets.all(16),
+                            child: Image(
+                              image: AssetImage('assets/logo.png'),
+                              fit: BoxFit.contain,
+                            ),
                           ),
                         ),
                       ),
@@ -155,7 +157,7 @@ class _LoginScreenState extends State<LoginScreen>
                     CustomButton(
                       label: 'Login',
                       isLoading: _loading,
-                      onPressed: _login,
+                      onPressed: _login, 
                     ),
                     const SizedBox(height: 12),
                     CustomButton(

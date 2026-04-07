@@ -67,8 +67,8 @@ class _SplashScreenState extends State<SplashScreen>
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  width: 120,
-                  height: 120,
+                  width: 148,
+                  height: 148,
                   decoration: BoxDecoration(
                     color: AppColors.secondary,
                     borderRadius: BorderRadius.circular(30),
@@ -80,10 +80,15 @@ class _SplashScreenState extends State<SplashScreen>
                       ),
                     ],
                   ),
-                  child: const Icon(
-                    Icons.restaurant_menu_rounded,
-                    size: 54,
-                    color: Colors.white,
+                  child: const Hero(
+                    tag: 'food-hero',
+                    child: Padding(
+                      padding: EdgeInsets.all(18),
+                      child: Image(
+                        image: AssetImage('assets/logo.png'),
+                        fit: BoxFit.contain,
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 18),
