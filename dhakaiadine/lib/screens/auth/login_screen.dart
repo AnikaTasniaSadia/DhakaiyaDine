@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../routes/app_router.dart';
-import '../../theme/app_colors.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
 
@@ -61,7 +60,7 @@ class _LoginScreenState extends State<LoginScreen>
 
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(const SnackBar(content: Text('Login success (demo flow).')));
+    ).showSnackBar(const SnackBar(content: Text('Login success.')));
   }
 
   String? _emailValidator(String? value) {
@@ -103,11 +102,16 @@ class _LoginScreenState extends State<LoginScreen>
                           width: 150,
                           height: 150,
                           decoration: BoxDecoration(
-                            color: AppColors.primary,
+                            color: Color.fromARGB(252, 0, 0, 0),
                             borderRadius: BorderRadius.circular(30),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.12),
+                                color: const Color.fromARGB(
+                                  255,
+                                  0,
+                                  0,
+                                  0,
+                                ).withValues(alpha: 0.12),
                                 blurRadius: 22,
                                 offset: const Offset(0, 10),
                               ),
@@ -138,7 +142,7 @@ class _LoginScreenState extends State<LoginScreen>
                     const SizedBox(height: 8),
                     CustomTextField(
                       controller: _emailController,
-                      hintText: 'you@example.com',
+                      hintText: 'Enter your email',
                       keyboardType: TextInputType.emailAddress,
                       validator: _emailValidator,
                       textInputAction: TextInputAction.next,
@@ -157,7 +161,7 @@ class _LoginScreenState extends State<LoginScreen>
                     CustomButton(
                       label: 'Login',
                       isLoading: _loading,
-                      onPressed: _login, 
+                      onPressed: _login,
                     ),
                     const SizedBox(height: 12),
                     CustomButton(

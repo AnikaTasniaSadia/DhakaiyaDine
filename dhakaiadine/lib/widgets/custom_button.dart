@@ -29,7 +29,9 @@ class _CustomButtonState extends State<CustomButton> {
             height: 22,
             child: CircularProgressIndicator(
               strokeWidth: 2.4,
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              valueColor: AlwaysStoppedAnimation<Color>(
+                Color.fromARGB(255, 255, 255, 255),
+              ),
             ),
           )
         : Text(widget.label);
@@ -47,8 +49,9 @@ class _CustomButtonState extends State<CustomButton> {
               ? OutlinedButton(
                   onPressed: widget.isLoading ? null : widget.onPressed,
                   style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.black,
                     minimumSize: const Size(double.infinity, 54),
-                    side: const BorderSide(width: 1.4),
+                    side: const BorderSide(width: 1.4, color: Colors.black),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),

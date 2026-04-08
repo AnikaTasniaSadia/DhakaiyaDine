@@ -92,7 +92,7 @@ class _RegisterScreenState extends State<RegisterScreen>
     setState(() => _loading = false);
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Account created (demo flow).')),
+      const SnackBar(content: Text('Account created.')),
     );
 
     Navigator.pushReplacementNamed(context, AppRouter.login);
@@ -109,14 +109,14 @@ class _RegisterScreenState extends State<RegisterScreen>
           child: SlideTransition(
             position: _slide,
             child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+              padding:  const EdgeInsets.fromLTRB(20, 8, 20, 24),
               child: Form(
                 key: _formKey,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Join Dhakaiya Dine',
+                      "Let's enter Dhakaiya Dine",
                       style: Theme.of(context).textTheme.headlineMedium,
                     ),
                     const SizedBox(height: 6),
@@ -138,7 +138,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                     const SizedBox(height: 8),
                     CustomTextField(
                       controller: _emailController,
-                      hintText: 'you@example.com',
+                      hintText: 'xyz@email.com',
                       keyboardType: TextInputType.emailAddress,
                       validator: _emailValidator,
                       textInputAction: TextInputAction.next,
@@ -172,6 +172,8 @@ class _RegisterScreenState extends State<RegisterScreen>
                     const SizedBox(height: 12),
                     CustomButton(
                       label: 'Back to Login',
+                      
+                  
                       isOutlined: true,
                       onPressed: () {
                         Navigator.pushReplacementNamed(
