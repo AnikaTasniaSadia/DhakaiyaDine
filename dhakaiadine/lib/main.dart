@@ -1,13 +1,21 @@
 import 'package:flutter/material.dart';
-import 'routes/app_router.dart';
-import 'theme/app_theme.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-void main() {
-  runApp(const MyApp());
+import 'core/theme/app_theme.dart';
+import 'screens/splash_screen.dart';
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Supabase.initialize(
+    url: 'https://olrcszjhhnitlepiqvvb.supabase.co',
+    anonKey: 'sb_publishable_UcuB61Dn5jNns6Vxpuz_KQ_zlXjKimQ',
+  );
+
+  runApp(const DhakaiyaDineApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class DhakaiyaDineApp extends StatelessWidget {
+  const DhakaiyaDineApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -15,8 +23,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'DhakaiyaDine',
       theme: AppTheme.lightTheme,
-      initialRoute: AppRouter.splash,
-      onGenerateRoute: AppRouter.onGenerateRoute,
+      home: const SplashScreen(),
     );
   }
 }
