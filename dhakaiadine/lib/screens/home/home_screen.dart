@@ -240,6 +240,11 @@ class _HomeScreenState extends State<HomeScreen> {
           setState(() {
             _activeNavIndex = index;
           });
+          if (index == 1) {
+            Navigator.pushNamed(context, AppRouter.favorites);
+          } else if (index == 2) {
+            Navigator.pushNamed(context, AppRouter.search);
+          }
         },
       ),
     );

@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 
 import '../features/cart/cart_screen.dart';
 import '../features/checkout/checkout_screen.dart';
+import '../features/favorites/favorites_screen.dart';
 import '../features/menu/food_details_screen.dart';
 import '../features/orders/order_confirmation_screen.dart';
 import '../features/orders/order_tracking_screen.dart';
+import '../features/search/search_screen.dart';
 import '../models/food_model.dart';
 import '../models/order_model.dart';
 import '../screens/auth/login_screen.dart';
@@ -26,6 +28,8 @@ class AppRouter {
   static const String checkout = '/checkout';
   static const String orderConfirmation = '/order-confirmation';
   static const String orderTracking = '/order-tracking';
+  static const String favorites = '/favorites';
+  static const String search = '/search';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -61,6 +65,10 @@ class AppRouter {
           return buildFadeSlideRoute(OrderTrackingScreen(order: order));
         }
         return buildSlideFadeRoute(const SplashScreen());
+      case favorites:
+        return buildFadeSlideRoute(const FavoritesScreen());
+      case search:
+        return buildFadeSlideRoute(const SearchScreen());
       default:
         return buildSlideFadeRoute(const SplashScreen());
     }

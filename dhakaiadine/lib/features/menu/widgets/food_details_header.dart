@@ -39,10 +39,7 @@ class FoodDetailsHeader extends StatelessWidget {
               ),
               child: Hero(
                 tag: heroTag,
-                child: Image.network(
-                  imageUrl,
-                  fit: BoxFit.cover,
-                ),
+                child: Image.network(imageUrl, fit: BoxFit.cover),
               ),
             ),
           ),

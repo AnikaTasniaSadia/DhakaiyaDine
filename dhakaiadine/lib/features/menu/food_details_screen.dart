@@ -136,6 +136,13 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
                         },
                       ),
                       const SizedBox(width: 16),
+                      _FavoriteButton(
+                        isFavorite: _isFavorite,
+                        onToggle: () {
+                          setState(() => _isFavorite = !_isFavorite);
+                        },
+                      ),
+                      const SizedBox(width: 16),
                       Expanded(
                         child: _AddToCartButton(
                           onPressed: () {
@@ -166,6 +173,58 @@ class _AddToCartButton extends StatefulWidget {
 
   @override
   State<_AddToCartButton> createState() => _AddToCartButtonState();
+}
+
+class _FavoriteButton extends StatefulWidget {
+  const _FavoriteButton({required this.isFavorite, required this.onToggle});
+
+  final bool isFavorite;
+  final VoidCallback onToggle;
+
+  @override
+  State<_FavoriteButton> createState() => _FavoriteButtonState();
+}
+
+class _FavoriteButtonState extends State<_FavoriteButton> {
+  double _scale = 1;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _scale = 0.95),
+      onTapUp: (_) => setState(() => _scale = 1),
+      onTapCancel: () => setState(() => _scale = 1),
+      onTap: widget.onToggle,
+      child: AnimatedScale(
+        scale: _scale,
+        duration: const Duration(milliseconds: 120),
+        child: Container(
+          width: 54,
+          height: 54,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: const Color(0xFFFFE082)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.08),
+                blurRadius: 12,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: Icon(
+            widget.isFavorite
+                ? Icons.favorite_rounded
+                : Icons.favorite_border_rounded,
+            color: widget.isFavorite
+                ? const Color(0xFFE53935)
+                : const Color(0xFF212121),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class _AddToCartButtonState extends State<_AddToCartButton> {
