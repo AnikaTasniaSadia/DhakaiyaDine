@@ -4,10 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:rive/rive.dart';
 import 'package:dhakaiadine/screens/home/home_screen.dart';
 import 'package:dhakaiadine/theme/app_colors.dart';
-import 'package:dhakaiadine/utils/rive_utils.dart';
-
-import '../../model/menu.dart';
-import 'components/btm_nav_item.dart';
 import 'components/menu_btn.dart';
 import 'components/side_bar.dart';
 
@@ -22,18 +18,7 @@ class _EntryPointState extends State<EntryPoint>
     with SingleTickerProviderStateMixin {
   bool isSideBarOpen = false;
 
-  Menu selectedBottonNav = bottomNavItems.first;
-  Menu selectedSideMenu = sidebarMenus.first;
-
   late SMIBool isMenuOpenInput;
-
-  void updateSelectedBtmNav(Menu menu) {
-    if (selectedBottonNav != menu) {
-      setState(() {
-        selectedBottonNav = menu;
-      });
-    }
-  }
 
   late AnimationController _animationController;
   late Animation<double> scalAnimation;
@@ -141,50 +126,7 @@ class _EntryPointState extends State<EntryPoint>
       ),
       bottomNavigationBar: Transform.translate(
         offset: Offset(0, 100 * animation.value),
-        child: SafeArea(
-          child: Container(
-            padding: const EdgeInsets.only(
-              left: 12,
-              top: 12,
-              right: 12,
-              bottom: 12,
-            ),
-            margin: const EdgeInsets.symmetric(horizontal: 24),
-            decoration: BoxDecoration(
-              color: AppColors.secondary.withValues(alpha: 0.8),
-              borderRadius: const BorderRadius.all(Radius.circular(24)),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.secondary.withValues(alpha: 0.3),
-                  offset: const Offset(0, 20),
-                  blurRadius: 20,
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                ...List.generate(bottomNavItems.length, (index) {
-                  Menu navBar = bottomNavItems[index];
-                  return BtmNavItem(
-                    navBar: navBar,
-                    press: () {
-                      RiveUtils.chnageSMIBoolState(navBar.rive.status!);
-                      updateSelectedBtmNav(navBar);
-                    },
-                    riveOnInit: (artboard) {
-                      navBar.rive.status = RiveUtils.getRiveInput(
-                        artboard,
-                        stateMachineName: navBar.rive.stateMachineName,
-                      );
-                    },
-                    selectedNav: selectedBottonNav,
-                  );
-                }),
-              ],
-            ),
-          ),
-        ),
+        child: const SizedBox.shrink(),
       ),
     );
   }

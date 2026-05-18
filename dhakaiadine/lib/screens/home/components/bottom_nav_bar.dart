@@ -59,16 +59,27 @@ class DhakaiaBottomNavBar extends StatelessWidget {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(
-                          item.icon,
-                          color: isActive
-                              ? const Color(0xFF000000)
-                              : const Color(0xFF6D6D6D),
-                          size: 22,
+                        AnimatedScale(
+                          scale: isActive ? 1.05 : 1,
+                          duration: const Duration(milliseconds: 220),
+                          curve: Curves.easeOut,
+                          child: AnimatedOpacity(
+                            opacity: isActive ? 1 : 0.85,
+                            duration: const Duration(milliseconds: 220),
+                            curve: Curves.easeOut,
+                            child: Icon(
+                              item.icon,
+                              color: isActive
+                                  ? const Color(0xFF000000)
+                                  : const Color(0xFF6D6D6D),
+                              size: 22,
+                            ),
+                          ),
                         ),
                         const SizedBox(height: 4),
-                        Text(
-                          item.label,
+                        AnimatedDefaultTextStyle(
+                          duration: const Duration(milliseconds: 220),
+                          curve: Curves.easeOut,
                           style: TextStyle(
                             color: isActive
                                 ? const Color(0xFF000000)
@@ -78,6 +89,7 @@ class DhakaiaBottomNavBar extends StatelessWidget {
                                 ? FontWeight.w700
                                 : FontWeight.w500,
                           ),
+                          child: Text(item.label),
                         ),
                       ],
                     ),

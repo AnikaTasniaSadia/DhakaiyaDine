@@ -4,12 +4,13 @@ import 'package:rive/rive.dart';
 import '../../../model/menu.dart';
 
 class SideMenu extends StatelessWidget {
-  const SideMenu(
-      {super.key,
-      required this.menu,
-      required this.press,
-      required this.riveOnInit,
-      required this.selectedMenu});
+  const SideMenu({
+    super.key,
+    required this.menu,
+    required this.press,
+    required this.riveOnInit,
+    required this.selectedMenu,
+  });
 
   final Menu menu;
   final VoidCallback press;
@@ -22,7 +23,7 @@ class SideMenu extends StatelessWidget {
       children: [
         const Padding(
           padding: EdgeInsets.only(left: 24),
-          child: Divider(color: Colors.white24, height: 1),
+          child: Divider(color: Color(0x1F000000), height: 1),
         ),
         Stack(
           children: [
@@ -34,7 +35,7 @@ class SideMenu extends StatelessWidget {
               left: 0,
               child: Container(
                 decoration: const BoxDecoration(
-                  color: Color(0xFF6792FF),
+                  color: Color(0xFFFFC107),
                   borderRadius: BorderRadius.all(Radius.circular(10)),
                 ),
               ),
@@ -52,7 +53,7 @@ class SideMenu extends StatelessWidget {
               ),
               title: Text(
                 menu.title,
-                style: const TextStyle(color: Colors.white),
+                style: const TextStyle(color: Color(0xFF212121)),
               ),
             ),
           ],

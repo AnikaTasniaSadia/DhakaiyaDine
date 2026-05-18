@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../models/food_model.dart';
+import '../../routes/app_router.dart';
 import 'components/bottom_nav_bar.dart';
 import 'components/category_widget.dart';
 import 'components/custom_app_bar.dart';
@@ -25,42 +27,56 @@ class _HomeScreenState extends State<HomeScreen> {
     _CategoryData('Meat', Icons.set_meal_rounded),
   ];
 
-  final List<_FoodItemData> _foods = const [
-    _FoodItemData(
+  final List<FoodModel> _foods = const [
+    FoodModel(
       id: 'beef-burger',
       name: 'Beef Smash Burger',
+      description:
+          'Juicy beef patty with caramelized onions, cheddar, and house sauce on a toasted bun.',
       price: 350,
+      discountedPrice: 280,
       rating: 4.7,
       deliveryTime: '40 min',
+      category: 'Burger',
       imageUrl:
           'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=900&q=80',
-      discount: '30% OFF',
     ),
-    _FoodItemData(
+    FoodModel(
       id: 'pepperoni-pizza',
       name: 'Pepperoni Pizza',
+      description:
+          'Classic pepperoni pizza with mozzarella, tomato sauce, and crispy edges.',
       price: 1120,
+      discountedPrice: 0,
       rating: 4.6,
       deliveryTime: '35 min',
+      category: 'Pizza',
       imageUrl:
           'https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=900&q=80',
     ),
-    _FoodItemData(
+    FoodModel(
       id: 'crispy-fries',
       name: 'Crispy French Fries',
+      description:
+          'Golden potato fries with a crunchy bite and a hint of sea salt.',
       price: 150,
+      discountedPrice: 135,
       rating: 4.4,
       deliveryTime: '25 min',
+      category: 'Fries',
       imageUrl:
           'https://images.unsplash.com/photo-1576107232684-1279f390859f?auto=format&fit=crop&w=900&q=80',
-      discount: '10% OFF',
     ),
-    _FoodItemData(
+    FoodModel(
       id: 'bbq-platter',
       name: 'BBQ Meat Platter',
+      description:
+          'Smoky BBQ meats served with grilled veggies and a tangy glaze.',
       price: 560,
+      discountedPrice: 0,
       rating: 4.8,
       deliveryTime: '50 min',
+      category: 'Meat',
       imageUrl:
           'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=900&q=80',
     ),
@@ -183,9 +199,19 @@ class _HomeScreenState extends State<HomeScreen> {
                         name: food.name,
                         deliveryTime: food.deliveryTime,
                         rating: food.rating,
-                        price: food.price,
-                        discountBadge: food.discount,
-                        onTap: () {},
+                        price: food.discountedPrice > 0
+                            ? food.discountedPrice
+                            : food.price,
+                        discountBadge: food.discountedPrice > 0
+                            ? 'Offer'
+                            : null,
+                        onTap: () {
+                          Navigator.pushNamed(
+                            context,
+                            AppRouter.foodDetails,
+                            arguments: food,
+                          );
+                        },
                       );
                     },
                   ),
@@ -221,24 +247,4 @@ class _CategoryData {
 
   final String label;
   final IconData icon;
-}
-
-class _FoodItemData {
-  const _FoodItemData({
-    required this.id,
-    required this.name,
-    required this.price,
-    required this.rating,
-    required this.deliveryTime,
-    required this.imageUrl,
-    this.discount,
-  });
-
-  final String id;
-  final String name;
-  final double price;
-  final double rating;
-  final String deliveryTime;
-  final String imageUrl;
-  final String? discount;
 }

@@ -56,8 +56,20 @@ class _LoginScreenState extends State<LoginScreen>
     setState(() => _loading = true);
     await Future<void>.delayed(const Duration(milliseconds: 1200));
     if (!mounted) return;
-    setState(() => _loading = false);
+    final email = _emailController.text.trim().toLowerCase();
+    final password = _passwordController.text;
 
+    if (email != 'test@gmail.com' || password != 'test123') {
+      setState(() => _loading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Invalid credentials. Use test@gmail.com / test123.'),
+        ),
+      );
+      return;
+    }
+
+    setState(() => _loading = false);
     Navigator.pushNamedAndRemoveUntil(
       context,
       AppRouter.home,
