@@ -2,7 +2,6 @@ import 'dart:math';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../models/cart_model.dart';
 import '../models/order_model.dart';
 import 'cart_service.dart';
 
