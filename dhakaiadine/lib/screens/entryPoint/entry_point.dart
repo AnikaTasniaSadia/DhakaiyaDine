@@ -17,6 +17,7 @@ class EntryPoint extends StatefulWidget {
 class _EntryPointState extends State<EntryPoint>
     with SingleTickerProviderStateMixin {
   bool isSideBarOpen = false;
+  final ValueNotifier<bool> _isMenuVisible = ValueNotifier<bool>(true);
 
   late SMIBool isMenuOpenInput;
 
@@ -50,6 +51,7 @@ class _EntryPointState extends State<EntryPoint>
 
   @override
   void dispose() {
+    _isMenuVisible.dispose();
     _animationController.dispose();
     super.dispose();
   }
@@ -82,18 +84,40 @@ class _EntryPointState extends State<EntryPoint>
               offset: Offset(animation.value * 265, 0),
               child: Transform.scale(
                 scale: scalAnimation.value,
-                child: const ClipRRect(
-                  borderRadius: BorderRadius.all(Radius.circular(24)),
-                  child: HomePage(),
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.all(Radius.circular(24)),
+                  child: HomePage(
+                    onMenuVisibilityChanged: (visible) {
+                      if (_isMenuVisible.value != visible) {
+                        _isMenuVisible.value = visible;
+                      }
+                    },
+                  ),
                 ),
               ),
             ),
           ),
-          AnimatedPositioned(
-            duration: const Duration(milliseconds: 200),
-            curve: Curves.fastOutSlowIn,
-            left: isSideBarOpen ? 220 : 0,
-            top: 16,
+          ValueListenableBuilder<bool>(
+            valueListenable: _isMenuVisible,
+            builder: (context, visible, child) {
+              return AnimatedPositioned(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.fastOutSlowIn,
+                left: isSideBarOpen ? 220 : 0,
+                top: 16,
+                child: AnimatedOpacity(
+                  opacity: visible ? 1 : 0,
+                  duration: const Duration(milliseconds: 200),
+                  curve: Curves.easeOut,
+                  child: AnimatedSlide(
+                    offset: visible ? Offset.zero : const Offset(0, -0.1),
+                    duration: const Duration(milliseconds: 200),
+                    curve: Curves.easeOut,
+                    child: IgnorePointer(ignoring: !visible, child: child),
+                  ),
+                ),
+              );
+            },
             child: MenuBtn(
               press: () {
                 isMenuOpenInput.value = !isMenuOpenInput.value;

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 
 import '../../models/food_model.dart';
 import '../../routes/app_router.dart';
@@ -9,7 +10,9 @@ import 'components/food_card.dart';
 import 'components/promo_banner.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({super.key, this.onMenuVisibilityChanged});
+
+  final ValueChanged<bool>? onMenuVisibilityChanged;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -112,111 +115,121 @@ class _HomeScreenState extends State<HomeScreen> {
             offset: _showContent ? Offset.zero : const Offset(0, 0.05),
             duration: const Duration(milliseconds: 450),
             curve: Curves.easeOutCubic,
-            child: CustomScrollView(
-              physics: const BouncingScrollPhysics(),
-              slivers: [
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const CustomAppBar(),
-                        const SizedBox(height: 20),
-                        PromoBanner(
-                          onOrderNow: () {},
-                          imageUrl:
-                              'https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=1000&q=80',
-                        ),
-                        const SizedBox(height: 24),
-                        SizedBox(
-                          height: 94,
-                          child: ListView.separated(
-                            scrollDirection: Axis.horizontal,
-                            physics: const BouncingScrollPhysics(),
-                            itemCount: _categories.length,
-                            separatorBuilder: (_, __) =>
-                                const SizedBox(width: 12),
-                            itemBuilder: (context, index) {
-                              final item = _categories[index];
-                              return CategoryWidget(
-                                label: item.label,
-                                icon: item.icon,
-                                isSelected: _selectedCategoryIndex == index,
-                                onTap: () {
-                                  setState(() {
-                                    _selectedCategoryIndex = index;
-                                  });
-                                },
-                              );
-                            },
+            child: NotificationListener<UserScrollNotification>(
+              onNotification: (notification) {
+                if (notification.direction == ScrollDirection.reverse) {
+                  widget.onMenuVisibilityChanged?.call(false);
+                } else if (notification.direction == ScrollDirection.forward) {
+                  widget.onMenuVisibilityChanged?.call(true);
+                }
+                return false;
+              },
+              child: CustomScrollView(
+                physics: const BouncingScrollPhysics(),
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const CustomAppBar(),
+                          const SizedBox(height: 20),
+                          PromoBanner(
+                            onOrderNow: () {},
+                            imageUrl:
+                                'https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=1000&q=80',
                           ),
-                        ),
-                        const SizedBox(height: 28),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Popular Items',
-                              style: Theme.of(context).textTheme.titleLarge
-                                  ?.copyWith(
-                                    color: _textColor,
-                                    fontWeight: FontWeight.w700,
-                                  ),
+                          const SizedBox(height: 24),
+                          SizedBox(
+                            height: 94,
+                            child: ListView.separated(
+                              scrollDirection: Axis.horizontal,
+                              physics: const BouncingScrollPhysics(),
+                              itemCount: _categories.length,
+                              separatorBuilder: (_, __) =>
+                                  const SizedBox(width: 12),
+                              itemBuilder: (context, index) {
+                                final item = _categories[index];
+                                return CategoryWidget(
+                                  label: item.label,
+                                  icon: item.icon,
+                                  isSelected: _selectedCategoryIndex == index,
+                                  onTap: () {
+                                    setState(() {
+                                      _selectedCategoryIndex = index;
+                                    });
+                                  },
+                                );
+                              },
                             ),
-                            TextButton(
-                              onPressed: () {},
-                              child: const Text(
-                                'See More',
-                                style: TextStyle(
-                                  color: Color(0xFF212121),
-                                  fontWeight: FontWeight.w600,
+                          ),
+                          const SizedBox(height: 28),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Popular Items',
+                                style: Theme.of(context).textTheme.titleLarge
+                                    ?.copyWith(
+                                      color: _textColor,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                              ),
+                              TextButton(
+                                onPressed: () {},
+                                child: const Text(
+                                  'See More',
+                                  style: TextStyle(
+                                    color: Color(0xFF212121),
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                      ],
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-                  sliver: SliverGrid.builder(
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 14,
-                          mainAxisSpacing: 14,
-                          childAspectRatio: 0.72,
-                        ),
-                    itemCount: _foods.length,
-                    itemBuilder: (context, index) {
-                      final food = _foods[index];
-                      return FoodCard(
-                        heroTag: 'food-${food.id}',
-                        imageUrl: food.imageUrl,
-                        name: food.name,
-                        deliveryTime: food.deliveryTime,
-                        rating: food.rating,
-                        price: food.discountedPrice > 0
-                            ? food.discountedPrice
-                            : food.price,
-                        discountBadge: food.discountedPrice > 0
-                            ? 'Offer'
-                            : null,
-                        onTap: () {
-                          Navigator.pushNamed(
-                            context,
-                            AppRouter.foodDetails,
-                            arguments: food,
-                          );
-                        },
-                      );
-                    },
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                    sliver: SliverGrid.builder(
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 14,
+                            mainAxisSpacing: 14,
+                            childAspectRatio: 0.72,
+                          ),
+                      itemCount: _foods.length,
+                      itemBuilder: (context, index) {
+                        final food = _foods[index];
+                        return FoodCard(
+                          heroTag: 'food-${food.id}',
+                          imageUrl: food.imageUrl,
+                          name: food.name,
+                          deliveryTime: food.deliveryTime,
+                          rating: food.rating,
+                          price: food.discountedPrice > 0
+                              ? food.discountedPrice
+                              : food.price,
+                          discountBadge: food.discountedPrice > 0
+                              ? 'Offer'
+                              : null,
+                          onTap: () {
+                            Navigator.pushNamed(
+                              context,
+                              AppRouter.foodDetails,
+                              arguments: food,
+                            );
+                          },
+                        );
+                      },
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -234,11 +247,13 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 class HomePage extends StatelessWidget {
-  const HomePage({super.key});
+  const HomePage({super.key, this.onMenuVisibilityChanged});
+
+  final ValueChanged<bool>? onMenuVisibilityChanged;
 
   @override
   Widget build(BuildContext context) {
-    return const HomeScreen();
+    return HomeScreen(onMenuVisibilityChanged: onMenuVisibilityChanged);
   }
 }
 

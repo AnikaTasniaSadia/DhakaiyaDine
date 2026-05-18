@@ -9,7 +9,7 @@ class CustomAppBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        _IconContainer(icon: Icons.menu_rounded, onTap: () {}),
+        const SizedBox(width: 42, height: 42),
         const Spacer(),
         Text(
           'Discover',
