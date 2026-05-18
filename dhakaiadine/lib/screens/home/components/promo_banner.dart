@@ -40,7 +40,7 @@ class _PromoBannerState extends State<PromoBanner> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Burgers Express',
+                  'For Eid day special',
                   style: TextStyle(
                     color: Color(0xFF212121),
                     fontWeight: FontWeight.w700,
@@ -49,7 +49,7 @@ class _PromoBannerState extends State<PromoBanner> {
                 ),
                 const SizedBox(height: 8),
                 const Text(
-                  '30% OFF',
+                  '28% OFF',
                   style: TextStyle(
                     color: Color(0xFF000000),
                     fontWeight: FontWeight.w800,
