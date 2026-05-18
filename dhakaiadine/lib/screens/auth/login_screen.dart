@@ -58,9 +58,11 @@ class _LoginScreenState extends State<LoginScreen>
     if (!mounted) return;
     setState(() => _loading = false);
 
-    ScaffoldMessenger.of(
+    Navigator.pushNamedAndRemoveUntil(
       context,
-    ).showSnackBar(const SnackBar(content: Text('Login success.')));
+      AppRouter.home,
+      (route) => false,
+    );
   }
 
   String? _emailValidator(String? value) {
