@@ -21,7 +21,7 @@ class CategoryWidget extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
         curve: Curves.easeOut,
-        width: 82,
+       
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
         decoration: BoxDecoration(
           color: isSelected ? const Color(0xFFFFC107) : Colors.white,

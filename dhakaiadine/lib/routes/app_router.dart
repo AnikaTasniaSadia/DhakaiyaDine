@@ -9,6 +9,13 @@ import '../features/orders/order_tracking_screen.dart';
 import '../features/search/search_screen.dart';
 import '../models/food_model.dart';
 import '../models/order_model.dart';
+import '../features/profile/profile_screen.dart';
+import '../features/profile/screens/order_history_screen.dart';
+import '../features/profile/screens/reviews_screen.dart';
+import '../features/profile/screens/saved_addresses_screen.dart';
+import '../features/profile/screens/edit_profile_screen.dart';
+import '../features/profile/screens/notification_screen.dart';
+import '../features/profile/screens/help_screen.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/register_screen.dart';
 import '../screens/entryPoint/entry_point.dart';
@@ -30,6 +37,13 @@ class AppRouter {
   static const String orderTracking = '/order-tracking';
   static const String favorites = '/favorites';
   static const String search = '/search';
+  static const String profile = '/profile';
+  static const String orderHistory = '/order-history';
+  static const String reviews = '/reviews';
+  static const String savedAddresses = '/saved-addresses';
+  static const String editProfile = '/edit-profile';
+  static const String notifications = '/notifications';
+  static const String help = '/help';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -69,6 +83,20 @@ class AppRouter {
         return buildFadeSlideRoute(const FavoritesScreen());
       case search:
         return buildFadeSlideRoute(const SearchScreen());
+      case profile:
+        return buildFadeSlideRoute(const ProfileScreen());
+      case orderHistory:
+        return buildFadeSlideRoute(const OrderHistoryScreen());
+      case reviews:
+        return buildFadeSlideRoute(const ReviewsScreen());
+      case savedAddresses:
+        return buildFadeSlideRoute(const SavedAddressesScreen());
+      case editProfile:
+        return buildFadeSlideRoute(const EditProfileScreen());
+      case notifications:
+        return buildFadeSlideRoute(const NotificationScreen());
+      case help:
+        return buildFadeSlideRoute(const HelpScreen());
       default:
         return buildSlideFadeRoute(const SplashScreen());
     }

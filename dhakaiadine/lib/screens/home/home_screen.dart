@@ -23,11 +23,15 @@ class _HomeScreenState extends State<HomeScreen> {
   static const Color _textColor = Color(0xFF212121);
 
   final List<_CategoryData> _categories = const [
+    _CategoryData('All', Icons.grid_view_rounded),
     _CategoryData('Burger', Icons.lunch_dining_rounded),
     _CategoryData('Pizza', Icons.local_pizza_rounded),
     _CategoryData('Fries', Icons.fastfood_rounded),
     _CategoryData('Drinks', Icons.local_drink_rounded),
     _CategoryData('Meat', Icons.set_meal_rounded),
+    _CategoryData('Chinese', Icons.ramen_dining_rounded),
+    _CategoryData('Italian', Icons.dinner_dining_rounded),
+    _CategoryData('Wraps', Icons.wrap_text_rounded),
   ];
 
   final List<FoodModel> _foods = [
@@ -54,8 +58,7 @@ class _HomeScreenState extends State<HomeScreen> {
       rating: 4.8,
       deliveryTime: '40 min',
       category: 'Burger',
-      imageUrl:
-          'https://plus.unsplash.com/premium_photo-1683655058728-415f4f2674bf?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8Y2hpY2tlbiUyMGJ1cmdlcnxlbnwwfHwwfHx8MA%3D%3D',
+      imageUrl: 'https://i.ibb.co.com/hRhz9m7b/Burger.jpg',
     ),
     FoodModel(
       id: 'pepperoni-pizza',
@@ -191,6 +194,14 @@ class _HomeScreenState extends State<HomeScreen> {
   int _activeNavIndex = 0;
   bool _showContent = false;
 
+  List<FoodModel> get _filteredFoods {
+    if (_selectedCategoryIndex == 0) {
+      return _foods; // Show all foods when "All" is selected
+    }
+    final selectedCategory = _categories[_selectedCategoryIndex].label;
+    return _foods.where((food) => food.category == selectedCategory).toList();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -240,7 +251,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           PromoBanner(
                             onOrderNow: () {},
                             imageUrl:
-                                'https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=1000&q=80',
+                                'https://i.ibb.co/hJMSRdtY/food-web-banner-31.jpg',
                           ),
                           const SizedBox(height: 24),
                           SizedBox(
@@ -248,20 +259,28 @@ class _HomeScreenState extends State<HomeScreen> {
                             child: ListView.separated(
                               scrollDirection: Axis.horizontal,
                               physics: const BouncingScrollPhysics(),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                              ),
                               itemCount: _categories.length,
                               separatorBuilder: (_, __) =>
-                                  const SizedBox(width: 12),
+                                  const SizedBox(width: 6),
                               itemBuilder: (context, index) {
                                 final item = _categories[index];
-                                return CategoryWidget(
-                                  label: item.label,
-                                  icon: item.icon,
-                                  isSelected: _selectedCategoryIndex == index,
-                                  onTap: () {
-                                    setState(() {
-                                      _selectedCategoryIndex = index;
-                                    });
-                                  },
+
+                                return SizedBox(
+                                  width:
+                                      MediaQuery.of(context).size.width / 4.5,
+                                  child: CategoryWidget(
+                                    label: item.label,
+                                    icon: item.icon,
+                                    isSelected: _selectedCategoryIndex == index,
+                                    onTap: () {
+                                      setState(() {
+                                        _selectedCategoryIndex = index;
+                                      });
+                                    },
+                                  ),
                                 );
                               },
                             ),
@@ -304,9 +323,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             mainAxisSpacing: 14,
                             childAspectRatio: 0.72,
                           ),
-                      itemCount: _foods.length,
+                      itemCount: _filteredFoods.length,
                       itemBuilder: (context, index) {
-                        final food = _foods[index];
+                        final food = _filteredFoods[index];
                         return FoodCard(
                           heroTag: 'food-${food.id}',
                           imageUrl: food.imageUrl,
@@ -346,6 +365,8 @@ class _HomeScreenState extends State<HomeScreen> {
             Navigator.pushNamed(context, AppRouter.favorites);
           } else if (index == 2) {
             Navigator.pushNamed(context, AppRouter.search);
+          } else if (index == 3) {
+            Navigator.pushNamed(context, AppRouter.profile);
           }
         },
       ),

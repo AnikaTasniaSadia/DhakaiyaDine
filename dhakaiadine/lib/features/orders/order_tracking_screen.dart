@@ -30,7 +30,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen>
     _status = widget.order.status;
     _timerController = AnimationController(
       vsync: this,
-      duration: const Duration(minutes: 20),
+      duration: const Duration(minutes: 1),
     )..forward();
 
     _pulseController = AnimationController(
