@@ -83,7 +83,9 @@ class _CheckoutScreenState extends State<CheckoutScreen>
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        const SnackBar(content: Text('Table confirmed at counter. Ready to place order.')),
+        const SnackBar(
+          content: Text('Table confirmed at counter. Ready to place order.'),
+        ),
       );
   }
 
@@ -98,8 +100,13 @@ class _CheckoutScreenState extends State<CheckoutScreen>
   final List<String> _branches = const [
     'Dhanmondi',
     'Gulshan',
-    'Banani',
+    'Jatrabari',
+    'Mohammadpur',
+    'Shanirakhra'
+        'Banani',
     'Uttara',
+    'Mirpur-10',
+    'Mirpur-12',
   ];
 
   @override
@@ -188,7 +195,9 @@ class _CheckoutScreenState extends State<CheckoutScreen>
           deliveryMethod: _deliveryMethod,
           paymentMethod: _paymentMethod,
           branch: _deliveryMethod == 'dinein' ? _branch : null,
-          tableNumber: _deliveryMethod == 'dinein' ? _selectedTableNumber : null,
+          tableNumber: _deliveryMethod == 'dinein'
+              ? _selectedTableNumber
+              : null,
         );
 
         cart.clear();
@@ -211,9 +220,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
         deliveryMethod: _deliveryMethod,
         paymentMethod: _paymentMethod,
         branch: _deliveryMethod == 'dinein' ? _branch : null,
-        tableNumber: _deliveryMethod == 'dinein'
-            ? _selectedTableNumber
-            : null,
+        tableNumber: _deliveryMethod == 'dinein' ? _selectedTableNumber : null,
       );
 
       cart.clear();
@@ -311,23 +318,26 @@ class _CheckoutScreenState extends State<CheckoutScreen>
                 Text(
                   'Restaurant Floor Plan',
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: const Color(0xFF1F2937),
-                      ),
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF1F2937),
+                  ),
                 ),
                 const SizedBox(height: 10),
                 Text(
                   'Tap a table to reserve your seat in style.',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: const Color(0xFF6B7280),
-                      ),
+                    color: const Color(0xFF6B7280),
+                  ),
                 ),
                 const SizedBox(height: 18),
                 _buildLegendRow(),
                 const SizedBox(height: 16),
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 16,
+                    horizontal: 12,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFFAF6EA),
                     borderRadius: BorderRadius.circular(18),
@@ -349,7 +359,10 @@ class _CheckoutScreenState extends State<CheckoutScreen>
                         runSpacing: 14,
                         spacing: 14,
                         children: smallTables
-                            .map((table) => _buildTableCard(table, BoxShape.circle, 105))
+                            .map(
+                              (table) =>
+                                  _buildTableCard(table, BoxShape.circle, 105),
+                            )
                             .toList(),
                       ),
                       const SizedBox(height: 20),
@@ -358,7 +371,10 @@ class _CheckoutScreenState extends State<CheckoutScreen>
                         runSpacing: 14,
                         spacing: 14,
                         children: mediumTables
-                            .map((table) => _buildTableCard(table, BoxShape.circle, 110))
+                            .map(
+                              (table) =>
+                                  _buildTableCard(table, BoxShape.circle, 110),
+                            )
                             .toList(),
                       ),
                       const SizedBox(height: 18),
@@ -367,7 +383,13 @@ class _CheckoutScreenState extends State<CheckoutScreen>
                         runSpacing: 14,
                         spacing: 14,
                         children: largeTables
-                            .map((table) => _buildTableCard(table, BoxShape.rectangle, 140))
+                            .map(
+                              (table) => _buildTableCard(
+                                table,
+                                BoxShape.rectangle,
+                                140,
+                              ),
+                            )
                             .toList(),
                       ),
                       const SizedBox(height: 18),
@@ -462,10 +484,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
         Container(
           width: 12,
           height: 12,
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
-          ),
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
         const SizedBox(width: 6),
         Text(
@@ -482,11 +501,15 @@ class _CheckoutScreenState extends State<CheckoutScreen>
 
   Widget _buildTableCard(_RestaurantTable table, BoxShape shape, double size) {
     final isSelected = _selectedTableNumber == table.number;
-    final borderColor = isSelected ? const Color(0xFFF4B400) : Colors.transparent;
+    final borderColor = isSelected
+        ? const Color(0xFFF4B400)
+        : Colors.transparent;
     final backgroundColor = isSelected
         ? const Color(0xFFF4B400)
         : _tableStatusColor(table.status).withOpacity(0.2);
-    final statusColor = isSelected ? const Color(0xFF1F2937) : _tableStatusColor(table.status);
+    final statusColor = isSelected
+        ? const Color(0xFF1F2937)
+        : _tableStatusColor(table.status);
 
     return AnimatedScale(
       duration: const Duration(milliseconds: 240),
@@ -503,7 +526,9 @@ class _CheckoutScreenState extends State<CheckoutScreen>
           decoration: BoxDecoration(
             color: backgroundColor,
             shape: shape,
-            borderRadius: shape == BoxShape.rectangle ? BorderRadius.circular(18) : null,
+            borderRadius: shape == BoxShape.rectangle
+                ? BorderRadius.circular(18)
+                : null,
             border: Border.all(color: borderColor, width: 2),
             boxShadow: [
               BoxShadow(
@@ -552,8 +577,8 @@ class _CheckoutScreenState extends State<CheckoutScreen>
   @override
   Widget build(BuildContext context) {
     final cart = context.watch<CartService>();
-  final isOrderButtonDisabled = _isLoading ||
-      (_deliveryMethod == 'dinein' && !_isDineInReady);
+    final isOrderButtonDisabled =
+        _isLoading || (_deliveryMethod == 'dinein' && !_isDineInReady);
 
     return Scaffold(
       backgroundColor: const Color(0xFFFFF8E1),
@@ -754,7 +779,11 @@ class _CheckoutScreenState extends State<CheckoutScreen>
           ),
           const SizedBox(height: 12),
           // Inputs
-          _buildField('Card Holder Name', controller: _cardNameController, keyboardType: TextInputType.name),
+          _buildField(
+            'Card Holder Name',
+            controller: _cardNameController,
+            keyboardType: TextInputType.name,
+          ),
           const SizedBox(height: 10),
           _buildField(
             'Card Number',
@@ -820,16 +849,25 @@ class _CheckoutScreenState extends State<CheckoutScreen>
             onChanged: (val) {
               if (isCardNumber) {
                 final digits = val.replaceAll(RegExp(r'[^0-9]'), '');
-                final limited = digits.length > 16 ? digits.substring(0, 16) : digits;
+                final limited = digits.length > 16
+                    ? digits.substring(0, 16)
+                    : digits;
                 final groups = <String>[];
                 for (var i = 0; i < limited.length; i += 4) {
-                  groups.add(limited.substring(i, i + 4 > limited.length ? limited.length : i + 4));
+                  groups.add(
+                    limited.substring(
+                      i,
+                      i + 4 > limited.length ? limited.length : i + 4,
+                    ),
+                  );
                 }
                 final formatted = groups.join(' ');
                 if (formatted != controller.text) {
                   controller.value = TextEditingValue(
                     text: formatted,
-                    selection: TextSelection.collapsed(offset: formatted.length),
+                    selection: TextSelection.collapsed(
+                      offset: formatted.length,
+                    ),
                   );
                 }
                 setState(() {});
@@ -838,17 +876,22 @@ class _CheckoutScreenState extends State<CheckoutScreen>
 
               if (isExpiry) {
                 final digits = val.replaceAll(RegExp(r'[^0-9]'), '');
-                final limited = digits.length > 4 ? digits.substring(0, 4) : digits;
+                final limited = digits.length > 4
+                    ? digits.substring(0, 4)
+                    : digits;
                 String formatted;
                 if (limited.length <= 2) {
                   formatted = limited;
                 } else {
-                  formatted = '${limited.substring(0, 2)}/${limited.substring(2)}';
+                  formatted =
+                      '${limited.substring(0, 2)}/${limited.substring(2)}';
                 }
                 if (formatted != controller.text) {
                   controller.value = TextEditingValue(
                     text: formatted,
-                    selection: TextSelection.collapsed(offset: formatted.length),
+                    selection: TextSelection.collapsed(
+                      offset: formatted.length,
+                    ),
                   );
                 }
                 setState(() {});
