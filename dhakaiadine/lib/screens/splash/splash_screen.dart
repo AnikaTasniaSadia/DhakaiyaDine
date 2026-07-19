@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../routes/app_router.dart';
 import '../../theme/app_colors.dart';
@@ -39,13 +40,18 @@ class _SplashScreenState extends State<SplashScreen>
   Future<void> _goNext() async {
     final prefs = await SharedPreferences.getInstance();
     final isFirstLaunch = !(prefs.getBool('seen_onboarding') ?? false);
+    final session = Supabase.instance.client.auth.currentSession;
 
     await Future<void>.delayed(const Duration(seconds: 2));
     if (!mounted) return;
 
-    Navigator.of(context).pushReplacementNamed(
-      isFirstLaunch ? AppRouter.onboarding : AppRouter.login,
-    );
+    if (session != null) {
+      Navigator.of(context).pushReplacementNamed(AppRouter.home);
+    } else {
+      Navigator.of(context).pushReplacementNamed(
+        isFirstLaunch ? AppRouter.onboarding : AppRouter.login,
+      );
+    }
   }
 
   @override

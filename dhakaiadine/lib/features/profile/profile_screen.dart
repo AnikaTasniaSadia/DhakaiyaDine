@@ -70,6 +70,7 @@ class _ProfileScreenState extends State<ProfileScreen>
       final ordersRes = await client
           .from('orders')
           .select('id')
+          .eq('user_id', uid)
           .count(CountOption.exact);
       final favsRes = await client
           .from('favorites')

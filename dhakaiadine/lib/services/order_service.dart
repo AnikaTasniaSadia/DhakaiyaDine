@@ -19,7 +19,9 @@ class OrderService {
     String? tableNumber,
   }) async {
     final token = _generateToken();
+    final uid = _client.auth.currentUser?.id;
     final orderPayload = {
+      'user_id': uid,
       'token_number': token,
       'status': 'received',
       'total': cart.subtotal,

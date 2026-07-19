@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../routes/app_router.dart';
+import '../../services/auth_service.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
 
@@ -54,27 +55,25 @@ class _LoginScreenState extends State<LoginScreen>
     }
 
     setState(() => _loading = true);
-    await Future<void>.delayed(const Duration(milliseconds: 1200));
-    if (!mounted) return;
-    final email = _emailController.text.trim().toLowerCase();
-    final password = _passwordController.text;
-
-    if (email != 'test@gmail.com' || password != 'test123') {
-      setState(() => _loading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Invalid credentials. Use test@gmail.com / test123.'),
-        ),
+    try {
+      await AuthService.instance.signIn(
+        email: _emailController.text,
+        password: _passwordController.text,
       );
-      return;
+      if (!mounted) return;
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        AppRouter.home,
+        (route) => false,
+      );
+    } on AuthFailure catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message)),
+      );
+    } finally {
+      if (mounted) setState(() => _loading = false);
     }
-
-    setState(() => _loading = false);
-    Navigator.pushNamedAndRemoveUntil(
-      context,
-      AppRouter.home,
-      (route) => false,
-    );
   }
 
   String? _emailValidator(String? value) {
