@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/food_model.dart';
-import '../../routes/app_router.dart';
-import '../../services/cart_service.dart';
+import '../../services/favorite_service.dart';
+import '../../widgets/add_to_cart_sheet.dart';
 import 'widgets/food_details_header.dart';
 import 'widgets/quantity_selector.dart';
 
@@ -17,7 +17,6 @@ class FoodDetailsScreen extends StatefulWidget {
 }
 
 class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
-  bool _isFavorite = false;
   int _quantity = 1;
 
   @override
@@ -25,6 +24,8 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
     final food = widget.food;
     final hasDiscount =
         food.discountedPrice > 0 && food.discountedPrice < food.price;
+    final favoriteService = context.watch<FavoriteService>();
+    final isFav = favoriteService.isFavorite(food.id);
 
     return Scaffold(
       backgroundColor: const Color(0xFFFFF8E1),
@@ -33,10 +34,20 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
           FoodDetailsHeader(
             heroTag: 'food-${food.id}',
             imageUrl: food.imageUrl,
-            isFavorite: _isFavorite,
+            isFavorite: isFav,
             onBack: () => Navigator.of(context).pop(),
             onToggleFavorite: () {
-              setState(() => _isFavorite = !_isFavorite);
+              favoriteService.toggleFavorite(food.id);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    isFav
+                        ? 'Removed from favorites'
+                        : 'Added to favorites',
+                  ),
+                  duration: const Duration(milliseconds: 800),
+                ),
+              );
             },
           ),
           Expanded(
@@ -137,20 +148,26 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
                       ),
                       const SizedBox(width: 16),
                       _FavoriteButton(
-                        isFavorite: _isFavorite,
+                        isFavorite: isFav,
                         onToggle: () {
-                          setState(() => _isFavorite = !_isFavorite);
+                          favoriteService.toggleFavorite(food.id);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                isFav
+                                    ? 'Removed from favorites'
+                                    : 'Added to favorites',
+                              ),
+                              duration: const Duration(milliseconds: 800),
+                            ),
+                          );
                         },
                       ),
                       const SizedBox(width: 16),
                       Expanded(
                         child: _AddToCartButton(
                           onPressed: () {
-                            context.read<CartService>().addItem(
-                              food,
-                              quantity: _quantity,
-                            );
-                            Navigator.pushNamed(context, AppRouter.cart);
+                            showAddToCartBottomSheet(context, food);
                           },
                         ),
                       ),

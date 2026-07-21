@@ -1,0 +1,100 @@
+/* style.css */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+
+:root {
+    --bg-dark: #121212;
+    --bg-card: #1e1e1e;
+    --bg-input: #2d2d2d;
+    --text-primary: #ffffff;
+    --text-secondary: #a0a0a0;
+    --gold-primary: #d4af37;
+    --gold-hover: #f1c40f;
+    --gold-muted: rgba(212, 175, 55, 0.2);
+    --border-color: #333333;
+    --danger: #e74c3c;
+    --success: #2ecc71;
+}
+
+body {
+    font-family: 'Outfit', sans-serif;
+    background-color: var(--bg-dark);
+    color: var(--text-primary);
+    margin: 0;
+    padding: 0;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+::-webkit-scrollbar-track {
+    background: var(--bg-dark); 
+}
+::-webkit-scrollbar-thumb {
+    background: var(--gold-primary); 
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--gold-hover); 
+}
+
+/* Login Page Styles */
+.login-container {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, rgba(18,18,18,1) 0%, rgba(30,30,30,1) 100%);
+}
+
+.login-card {
+    background-color: var(--bg-card);
+    padding: 3rem;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    width: 100%;
+    max-width: 450px;
+    border: 1px solid var(--border-color);
+}
+
+.login-card h2 {
+    color: var(--gold-primary);
+    text-align: center;
+    margin-bottom: 2rem;
+    font-weight: 600;
+}
+
+.form-control {
+    background-color: var(--bg-input);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 0.75rem 1rem;
+}
+
+.form-control:focus {
+    background-color: var(--bg-input);
+    color: var(--text-primary);
+    border-color: var(--gold-primary);
+    box-shadow: 0 0 0 0.25rem var(--gold-muted);
+}
+
+.btn-primary {
+    background-color: var(--gold-primary);
+    border-color: var(--gold-primary);
+    color: #000;
+    font-weight: 600;
+    padding: 0.75rem;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background-color: var(--gold-hover);
+    border-color: var(--gold-hover);
+    color: #000;
+    box-shadow: 0 5px 15px rgba(212, 175, 55, 0.4);
+}
+
+.form-check-input:checked {
+    background-color: var(--gold-primary);
+    border-color: var(--gold-primary);
+}

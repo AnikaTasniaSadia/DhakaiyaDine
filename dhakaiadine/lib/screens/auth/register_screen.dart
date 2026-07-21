@@ -96,17 +96,25 @@ class _RegisterScreenState extends State<RegisterScreen>
         password: _passwordController.text,
       );
       if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Account created. Please log in.')),
+        const SnackBar(content: Text('Account created! Please login.')),
       );
       Navigator.pushReplacementNamed(context, AppRouter.login);
-    } on AuthFailure catch (e) {
+    } on AuthFailure catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.message)),
+        SnackBar(content: Text(error.message)),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Registration failed: $error')),
       );
     } finally {
-      if (mounted) setState(() => _loading = false);
+      if (mounted) {
+        setState(() => _loading = false);
+      }
     }
   }
 
@@ -179,13 +187,12 @@ class _RegisterScreenState extends State<RegisterScreen>
                     CustomButton(
                       label: 'Register',
                       isLoading: _loading,
+                      disableOffline: true,
                       onPressed: _register,
                     ),
                     const SizedBox(height: 12),
                     CustomButton(
                       label: 'Back to Login',
-                      
-                  
                       isOutlined: true,
                       onPressed: () {
                         Navigator.pushReplacementNamed(

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Dhakaia Dine Admin</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/theme.css">
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+    <div class="wrapper">
+        <nav id="sidebar">
+            <div class="sidebar-header">
+                <h3><i class="fas fa-utensils"></i> Dhakaia Dine</h3>
+            </div>
+            <ul class="list-unstyled components">
+                <li><a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a href="orders.html"><i class="fas fa-shopping-cart"></i> Orders</a></li>
+                <li><a href="foods.html"><i class="fas fa-hamburger"></i> Foods</a></li>
+                <li><a href="categories.html"><i class="fas fa-list"></i> Categories</a></li>
+                <li><a href="banners.html"><i class="fas fa-images"></i> Banners</a></li>
+                <li><a href="branches.html"><i class="fas fa-store"></i> Branches</a></li>
+                <li><a href="tables.html"><i class="fas fa-chair"></i> Tables</a></li>
+                <li><a href="customers.html"><i class="fas fa-users"></i> Customers</a></li>
+                <li class="active"><a href="settings.html"><i class="fas fa-cog"></i> Settings</a></li>
+            </ul>
+        </nav>
+
+        <div id="content">
+            <nav class="navbar navbar-expand-lg navbar-custom">
+                <div class="container-fluid">
+                    <button type="button" id="sidebarCollapse" class="btn-sidebar"><i class="fas fa-bars"></i></button>
+                    <div class="ms-auto user-profile">
+                        <span id="userEmail">admin@dhakaiadine.com</span>
+                        <div class="dropdown">
+                            <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" style="background: transparent; border: none; color: var(--gold-primary);">
+                                <i class="fas fa-user-circle fa-lg"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark">
+                                <li><a class="dropdown-item" href="settings.html">Settings</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="#" id="logoutBtn">Logout</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="container-fluid p-4">
+                <h2 class="text-gold mb-4">Settings</h2>
+
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class="card bg-card border-secondary">
+                            <div class="card-body">
+                                <form id="settingsForm">
+                                    <h5 class="text-gold border-bottom border-secondary pb-2 mb-4">General Information</h5>
+                                    
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Restaurant Name</label>
+                                            <input type="text" class="form-control" id="resName" value="Dhakaia Dine">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Contact Number</label>
+                                            <input type="text" class="form-control" id="resPhone" value="+880 1234 567890">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Currency Symbol</label>
+                                            <input type="text" class="form-control" id="resCurrency" value="$">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Tax Rate (%)</label>
+                                            <input type="number" step="0.1" class="form-control" id="resTax" value="15">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Default Delivery Charge</label>
+                                            <input type="number" step="0.5" class="form-control" id="resDelivery" value="5.0">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Theme Color (Hex)</label>
+                                            <input type="text" class="form-control" id="resColor" value="#d4af37">
+                                        </div>
+                                        
+                                        <div class="col-12 mt-4">
+                                            <h5 class="text-gold border-bottom border-secondary pb-2 mb-3">Social Links</h5>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Facebook</label>
+                                            <input type="url" class="form-control" id="resFb" placeholder="https://facebook.com/...">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Instagram</label>
+                                            <input type="url" class="form-control" id="resIg" placeholder="https://instagram.com/...">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mt-4 pt-3 border-top border-secondary text-end">
+                                        <button type="submit" class="btn btn-primary" id="btnSaveSettings">Save Settings</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module" src="assets/js/main.js"></script>
+    <script>
+        document.getElementById('settingsForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            Swal.fire({
+                icon: 'success',
+                title: 'Settings Saved',
+                text: 'Your application settings have been saved successfully.',
+                background: '#1e1e1e',
+                color: '#fff',
+                confirmButtonColor: '#d4af37'
+            });
+        });
+    </script>
+</body>
+</html>

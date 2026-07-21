@@ -4,6 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:rive/rive.dart';
 import 'package:dhakaiadine/screens/home/home_screen.dart';
 import 'package:dhakaiadine/theme/app_colors.dart';
+import 'package:dhakaiadine/screens/home/components/bottom_nav_bar.dart';
+import 'package:dhakaiadine/features/favorites/favorites_screen.dart';
+import 'package:dhakaiadine/features/search/search_screen.dart';
+import 'package:dhakaiadine/features/profile/profile_screen.dart';
 import 'components/menu_btn.dart';
 import 'components/side_bar.dart';
 
@@ -18,6 +22,7 @@ class _EntryPointState extends State<EntryPoint>
     with SingleTickerProviderStateMixin {
   bool isSideBarOpen = false;
   final ValueNotifier<bool> _isMenuVisible = ValueNotifier<bool>(true);
+  int _activeNavIndex = 0;
 
   late SMIBool isMenuOpenInput;
 
@@ -86,12 +91,20 @@ class _EntryPointState extends State<EntryPoint>
                 scale: scalAnimation.value,
                 child: ClipRRect(
                   borderRadius: const BorderRadius.all(Radius.circular(24)),
-                  child: HomePage(
-                    onMenuVisibilityChanged: (visible) {
-                      if (_isMenuVisible.value != visible) {
-                        _isMenuVisible.value = visible;
-                      }
-                    },
+                  child: IndexedStack(
+                    index: _activeNavIndex,
+                    children: [
+                      HomeScreen(
+                        onMenuVisibilityChanged: (visible) {
+                          if (_isMenuVisible.value != visible) {
+                            _isMenuVisible.value = visible;
+                          }
+                        },
+                      ),
+                      const FavoritesScreen(),
+                      const SearchScreen(),
+                      const ProfileScreen(),
+                    ],
                   ),
                 ),
               ),
@@ -150,7 +163,14 @@ class _EntryPointState extends State<EntryPoint>
       ),
       bottomNavigationBar: Transform.translate(
         offset: Offset(0, 100 * animation.value),
-        child: const SizedBox.shrink(),
+        child: DhakaiaBottomNavBar(
+          activeIndex: _activeNavIndex,
+          onChanged: (index) {
+            setState(() {
+              _activeNavIndex = index;
+            });
+          },
+        ),
       ),
     );
   }

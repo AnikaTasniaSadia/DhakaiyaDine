@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../../services/cart_service.dart';
+import '../../../routes/app_router.dart';
 
 class CustomAppBar extends StatelessWidget {
   const CustomAppBar({super.key});
@@ -7,6 +10,9 @@ class CustomAppBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cartService = context.watch<CartService>();
+    final cartItemCount = cartService.totalItems;
+
     return Row(
       children: [
         const SizedBox(width: 42, height: 42),
@@ -21,11 +27,45 @@ class CustomAppBar extends StatelessWidget {
         const Spacer(),
         Row(
           children: [
-            _IconContainer(icon: Icons.search_rounded, onTap: () {}),
-            const SizedBox(width: 10),
             _IconContainer(
-              icon: Icons.notifications_none_rounded,
-              onTap: () {},
+              icon: Icons.search_rounded,
+              onTap: () => Navigator.pushNamed(context, AppRouter.search),
+            ),
+            const SizedBox(width: 10),
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                _IconContainer(
+                  icon: Icons.shopping_cart_outlined,
+                  onTap: () => Navigator.pushNamed(context, AppRouter.cart),
+                ),
+                if (cartItemCount > 0)
+                  Positioned(
+                    top: -4,
+                    right: -4,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFF4B400),
+                        shape: BoxShape.circle,
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 18,
+                        minHeight: 18,
+                      ),
+                      child: Center(
+                        child: Text(
+                          '$cartItemCount',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ],
         ),

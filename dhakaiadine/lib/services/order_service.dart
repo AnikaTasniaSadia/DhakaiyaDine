@@ -19,14 +19,12 @@ class OrderService {
     String? tableNumber,
   }) async {
     final token = _generateToken();
-    final uid = _client.auth.currentUser?.id;
     final orderPayload = {
-      'user_id': uid,
       'token_number': token,
       'status': 'received',
       'total': cart.subtotal,
-      'delivery_fee': cart.items.isEmpty ? 0 : CartService.deliveryFee,
-      'grand_total': cart.grandTotal,
+      'delivery_fee': (paymentMethod == 'cash' && cart.items.isNotEmpty) ? CartService.deliveryFee : 0,
+      'grand_total': cart.subtotal + ((paymentMethod == 'cash' && cart.items.isNotEmpty) ? CartService.deliveryFee : 0),
       'delivery_method': deliveryMethod,
       'payment_method': paymentMethod,
       'branch': branch,

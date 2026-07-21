@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:provider/provider.dart';
+import '../services/profile_service.dart';
+import '../widgets/order_tile.dart';
 
 class OrderHistoryScreen extends StatefulWidget {
   const OrderHistoryScreen({super.key});
@@ -8,227 +10,160 @@ class OrderHistoryScreen extends StatefulWidget {
   State<OrderHistoryScreen> createState() => _OrderHistoryScreenState();
 }
 
-class _OrderHistoryScreenState extends State<OrderHistoryScreen>
-    with SingleTickerProviderStateMixin {
-  static const _yellow = Color(0xFFF4B400);
+class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
   static const _navy = Color(0xFF1F2937);
+  static const _yellow = Color(0xFFF4B400);
   static const _bg = Color(0xFFFAF6EA);
 
-  late final AnimationController _ctrl;
-  late final Animation<double> _fade;
-
-  List<Map<String, dynamic>> _orders = [];
-  bool _loading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 600),
-    );
-    _fade = CurvedAnimation(parent: _ctrl, curve: Curves.easeOut);
-    _loadOrders();
-  }
-
-  Future<void> _loadOrders() async {
-    final uid = Supabase.instance.client.auth.currentUser?.id;
-    if (uid == null) {
-      setState(() => _loading = false);
-      _ctrl.forward();
-      return;
-    }
-    try {
-      final res = await Supabase.instance.client
-          .from('orders')
-          .select()
-          .eq('user_id', uid)
-          .order('created_at', ascending: false);
-      if (mounted) {
-        setState(() {
-          _orders = List<Map<String, dynamic>>.from(res);
-          _loading = false;
-        });
-        _ctrl.forward();
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _loading = false);
-        _ctrl.forward();
-      }
-    }
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
+  String _searchQuery = '';
+  String _sortOption = 'Newest';
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: _bg,
-      appBar: AppBar(
-        title: const Text('Order History'),
-        backgroundColor: _navy,
-        foregroundColor: Colors.white,
-        elevation: 0,
-      ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator(color: _yellow))
-          : _orders.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.receipt_long_rounded, size: 64, color: _yellow),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'No Orders Yet',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: _navy,
-                    ),
-                  ),
-                ],
-              ),
-            )
-          : FadeTransition(
-              opacity: _fade,
-              child: ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: _orders.length,
-                itemBuilder: (ctx, i) => _OrderCard(order: _orders[i]),
+    return ChangeNotifierProvider.value(
+      value: ProfileService.instance,
+      child: Consumer<ProfileService>(
+        builder: (context, service, _) {
+          final orders = service.orders;
+
+          // Filter by search query
+          var filteredOrders = orders.where((o) {
+            final name = o['food_name']?.toString().toLowerCase() ?? '';
+            final token = o['token_number']?.toString().toLowerCase() ?? '';
+            final query = _searchQuery.toLowerCase();
+            return name.contains(query) || token.contains(query);
+          }).toList();
+
+          // Filter/Sort option
+          if (_sortOption == 'Newest') {
+            filteredOrders.sort((a, b) => b['order_date'].toString().compareTo(a['order_date'].toString()));
+          } else if (_sortOption == 'Oldest') {
+            filteredOrders.sort((a, b) => a['order_date'].toString().compareTo(b['order_date'].toString()));
+          } else if (_sortOption == 'Pending') {
+            filteredOrders = filteredOrders.where((o) => o['status'].toString().toLowerCase() == 'pending' || o['status'].toString().toLowerCase() == 'preparing').toList();
+          } else if (_sortOption == 'Completed') {
+            filteredOrders = filteredOrders.where((o) => o['status'].toString().toLowerCase() == 'completed').toList();
+          } else if (_sortOption == 'Cancelled') {
+            filteredOrders = filteredOrders.where((o) => o['status'].toString().toLowerCase() == 'cancelled').toList();
+          }
+
+          return Scaffold(
+            backgroundColor: _bg,
+            appBar: AppBar(
+              title: const Text('Order History', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
+              backgroundColor: Colors.white,
+              foregroundColor: _navy,
+              elevation: 0.5,
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back_ios_rounded),
+                onPressed: () => Navigator.pop(context),
               ),
             ),
-    );
-  }
-}
-
-class _OrderCard extends StatelessWidget {
-  const _OrderCard({required this.order});
-
-  final Map<String, dynamic> order;
-
-  @override
-  Widget build(BuildContext context) {
-    final totalAmount = (order['grand_total'] as num?)?.toDouble() ?? 0.0;
-    final status = order['status'] as String? ?? 'pending';
-    final createdAt = order['created_at'] as String? ?? '';
-    final tokenNumber = order['token_number'] as String? ?? 'N/A';
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Token: $tokenNumber',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF1F2937),
+            body: Column(
+              children: [
+                // Search and Filter Bar
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: const Color(0xFFECECEC)),
+                          ),
+                          child: TextField(
+                            onChanged: (val) {
+                              setState(() {
+                                _searchQuery = val;
+                              });
+                            },
+                            decoration: const InputDecoration(
+                              icon: Icon(Icons.search_rounded, color: _yellow),
+                              hintText: 'Search orders...',
+                              border: InputBorder.none,
+                              hintStyle: TextStyle(fontSize: 14),
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      createdAt.split('T')[0],
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Color(0xFF7A8599),
+                      const SizedBox(width: 10),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: const Color(0xFFECECEC)),
+                        ),
+                        child: DropdownButton<String>(
+                          value: _sortOption,
+                          underline: const SizedBox(),
+                          icon: const Icon(Icons.filter_list_rounded, color: _yellow),
+                          items: ['Newest', 'Oldest', 'Pending', 'Completed', 'Cancelled']
+                              .map((opt) => DropdownMenuItem(value: opt, child: Text(opt, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold))))
+                              .toList(),
+                          onChanged: (val) {
+                            if (val != null) {
+                              setState(() {
+                                _sortOption = val;
+                              });
+                            }
+                          },
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: _statusColor(status).withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  status.toUpperCase(),
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: _statusColor(status),
+                    ],
                   ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Total Amount',
-                style: const TextStyle(fontSize: 12, color: Color(0xFF7A8599)),
-              ),
-              Text(
-                '\৳${totalAmount.toStringAsFixed(2)}',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                  color: Color(0xFFF4B400),
+
+                // Order history list
+                Expanded(
+                  child: filteredOrders.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.receipt_long_outlined, size: 72, color: Color(0xFF9CA3AF)),
+                              const SizedBox(height: 16),
+                              const Text(
+                                'No Orders Found',
+                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: _navy),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                _searchQuery.isEmpty ? 'You haven\'t ordered anything yet.' : 'Try searching for something else.',
+                                style: const TextStyle(fontSize: 13, color: Color(0xFF6B7280)),
+                              ),
+                            ],
+                          ),
+                        )
+                      : ListView.builder(
+                          itemCount: filteredOrders.length,
+                          padding: const EdgeInsets.only(bottom: 24),
+                          itemBuilder: (context, index) {
+                            final order = filteredOrders[index];
+                            return OrderTile(
+                              order: order,
+                              onViewDetails: () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Order Token: ${order['token_number']}')),
+                                );
+                              },
+                              onOrderAgain: () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Added to cart. Please check your cart.')),
+                                );
+                              },
+                            );
+                          },
+                        ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFF4B400),
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              onPressed: () {},
-              child: const Text('View Details'),
+              ],
             ),
-          ),
-        ],
+          );
+        },
       ),
     );
-  }
-
-  Color _statusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'completed':
-        return Colors.green;
-      case 'pending':
-        return Colors.orange;
-      case 'cancelled':
-        return Colors.red;
-      default:
-        return Colors.grey;
-    }
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../routes/app_router.dart';
 import '../../services/auth_service.dart';
+import '../../services/rbac_service.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
 
@@ -57,22 +58,27 @@ class _LoginScreenState extends State<LoginScreen>
     setState(() => _loading = true);
     try {
       await AuthService.instance.signIn(
-        email: _emailController.text,
+        email: _emailController.text.trim(),
         password: _passwordController.text,
       );
+      final role = await RbacService.instance.resolveRole();
       if (!mounted) return;
-      Navigator.pushNamedAndRemoveUntil(
+      final route = RbacService.homeRouteForRole(role);
+      Navigator.pushNamedAndRemoveUntil(context, route, (route) => false);
+    } on AuthFailure catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
         context,
-        AppRouter.home,
-        (route) => false,
-      );
-    } on AuthFailure catch (e) {
+      ).showSnackBar(SnackBar(content: Text(error.message)));
+    } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.message)),
+        SnackBar(content: Text('Unable to login right now: $error')),
       );
     } finally {
-      if (mounted) setState(() => _loading = false);
+      if (mounted) {
+        setState(() => _loading = false);
+      }
     }
   }
 
@@ -174,12 +180,14 @@ class _LoginScreenState extends State<LoginScreen>
                     CustomButton(
                       label: 'Login',
                       isLoading: _loading,
+                      disableOffline: true,
                       onPressed: _login,
                     ),
                     const SizedBox(height: 12),
                     CustomButton(
                       label: 'Sign Up',
                       isOutlined: true,
+                      disableOffline: true,
                       onPressed: () {
                         Navigator.pushNamed(context, AppRouter.register);
                       },

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../routes/app_router.dart';
 import '../../services/cart_service.dart';
 import 'widgets/cart_item_card.dart';
+import 'widgets/empty_cart_widget.dart';
 import 'widgets/order_summary_card.dart';
 
 class CartScreen extends StatelessWidget {
@@ -12,79 +13,92 @@ class CartScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFF8E1),
-      appBar: AppBar(title: const Text('My Cart')),
+      backgroundColor: const Color(0xFFFAF6EA), // Match Cream theme
+      appBar: AppBar(
+        title: const Text('My Cart'),
+        backgroundColor: const Color(0xFFFAF6EA),
+        elevation: 0,
+        foregroundColor: const Color(0xFF1F2937),
+      ),
       body: Consumer<CartService>(
         builder: (context, cart, _) {
-          if (cart.items.isEmpty) {
-            return _EmptyState(onBrowse: () => Navigator.pop(context));
-          }
-
-          return Column(
-            children: [
-              Expanded(
-                child: AnimatedSize(
-                  duration: const Duration(milliseconds: 250),
-                  curve: Curves.easeOut,
-                  child: ListView.separated(
-                    padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
-                    itemCount: cart.items.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 14),
-                    itemBuilder: (context, index) {
-                      final item = cart.items[index];
-                      return Dismissible(
-                        key: ValueKey<String>(item.food.id),
-                        direction: DismissDirection.endToStart,
-                        onDismissed: (_) => cart.removeItem(item.food.id),
-                        background: Container(
-                          alignment: Alignment.centerRight,
-                          padding: const EdgeInsets.only(right: 20),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFFFEBEE),
-                            borderRadius: BorderRadius.circular(18),
-                          ),
-                          child: const Icon(
-                            Icons.delete_outline_rounded,
-                            color: Color(0xFFE53935),
+          return AnimatedSwitcher(
+            duration: const Duration(milliseconds: 500),
+            transitionBuilder: (Widget child, Animation<double> animation) {
+              return FadeTransition(
+                opacity: animation,
+                child: child,
+              );
+            },
+            child: cart.items.isEmpty
+                ? const EmptyCartWidget(key: ValueKey('empty_cart_view'))
+                : Column(
+                    key: const ValueKey('active_cart_view'),
+                    children: [
+                      Expanded(
+                        child: AnimatedSize(
+                          duration: const Duration(milliseconds: 250),
+                          curve: Curves.easeOut,
+                          child: ListView.separated(
+                            padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
+                            itemCount: cart.items.length,
+                            separatorBuilder: (_, __) => const SizedBox(height: 14),
+                            itemBuilder: (context, index) {
+                              final item = cart.items[index];
+                              return Dismissible(
+                                key: ValueKey<String>(item.food.id),
+                                direction: DismissDirection.endToStart,
+                                onDismissed: (_) => cart.removeItem(item.food.id),
+                                background: Container(
+                                  alignment: Alignment.centerRight,
+                                  padding: const EdgeInsets.only(right: 20),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFFFEBEE),
+                                    borderRadius: BorderRadius.circular(18),
+                                  ),
+                                  child: const Icon(
+                                    Icons.delete_outline_rounded,
+                                    color: Color(0xFFE53935),
+                                  ),
+                                ),
+                                child: CartItemCard(
+                                  item: item,
+                                  onIncrement: () => cart.updateQuantity(
+                                    item.food.id,
+                                    item.quantity + 1,
+                                  ),
+                                  onDecrement: () => cart.updateQuantity(
+                                    item.food.id,
+                                    item.quantity - 1,
+                                  ),
+                                  onRemove: () => cart.removeItem(item.food.id),
+                                ),
+                              );
+                            },
                           ),
                         ),
-                        child: CartItemCard(
-                          item: item,
-                          onIncrement: () => cart.updateQuantity(
-                            item.food.id,
-                            item.quantity + 1,
-                          ),
-                          onDecrement: () => cart.updateQuantity(
-                            item.food.id,
-                            item.quantity - 1,
-                          ),
-                          onRemove: () => cart.removeItem(item.food.id),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                        child: Column(
+                          children: [
+                            OrderSummaryCard(
+                              subtotal: cart.subtotal,
+                              deliveryFee: cart.items.isEmpty
+                                  ? 0
+                                  : CartService.deliveryFee,
+                              grandTotal: cart.grandTotal,
+                            ),
+                            const SizedBox(height: 16),
+                            _CheckoutButton(
+                              onPressed: () =>
+                                  Navigator.pushNamed(context, AppRouter.checkout),
+                            ),
+                          ],
                         ),
-                      );
-                    },
+                      ),
+                    ],
                   ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                child: Column(
-                  children: [
-                    OrderSummaryCard(
-                      subtotal: cart.subtotal,
-                      deliveryFee: cart.items.isEmpty
-                          ? 0
-                          : CartService.deliveryFee,
-                      grandTotal: cart.grandTotal,
-                    ),
-                    const SizedBox(height: 16),
-                    _CheckoutButton(
-                      onPressed: () =>
-                          Navigator.pushNamed(context, AppRouter.checkout),
-                    ),
-                  ],
-                ),
-              ),
-            ],
           );
         },
       ),

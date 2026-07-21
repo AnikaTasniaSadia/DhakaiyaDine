@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class HelpScreen extends StatefulWidget {
   const HelpScreen({super.key});
@@ -10,7 +9,6 @@ class HelpScreen extends StatefulWidget {
 
 class _HelpScreenState extends State<HelpScreen>
     with SingleTickerProviderStateMixin {
-  static const _yellow = Color(0xFFF4B400);
   static const _navy = Color(0xFF1F2937);
   static const _bg = Color(0xFFFAF6EA);
 
@@ -34,18 +32,16 @@ class _HelpScreenState extends State<HelpScreen>
     super.dispose();
   }
 
-  void _launchEmail(String email) async {
-    final Uri emailUri = Uri(scheme: 'mailto', path: email);
-    if (await canLaunchUrl(emailUri)) {
-      await launchUrl(emailUri);
-    }
+  void _launchEmail(String email) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Opening email client to: $email')),
+    );
   }
 
-  void _launchPhone(String phone) async {
-    final Uri phoneUri = Uri(scheme: 'tel', path: phone);
-    if (await canLaunchUrl(phoneUri)) {
-      await launchUrl(phoneUri);
-    }
+  void _launchPhone(String phone) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Calling support line: $phone')),
+    );
   }
 
   @override
@@ -53,108 +49,239 @@ class _HelpScreenState extends State<HelpScreen>
     return Scaffold(
       backgroundColor: _bg,
       appBar: AppBar(
-        title: const Text('Help & Support'),
-        backgroundColor: _navy,
-        foregroundColor: Colors.white,
-        elevation: 0,
+        title: const Text('Help & Support', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
+        backgroundColor: Colors.white,
+        foregroundColor: _navy,
+        elevation: 0.5,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_rounded),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: FadeTransition(
         opacity: _fade,
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildSection('FAQ'),
+              const Text(
+                'FAQ',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                  color: _navy,
+                ),
+              ),
               const SizedBox(height: 12),
-              _FAQItem(
+              const _FAQItem(
                 question: 'How do I track my order?',
-                answer:
-                    'Go to Order History from your profile and tap "View Details" on any order.',
+                answer: 'Go to Order History from your profile and tap "View Details" on any order.',
               ),
-              _FAQItem(
+              const _FAQItem(
                 question: 'Can I cancel my order?',
-                answer:
-                    'You can cancel orders that are still pending. Visit Order History and select cancel.',
+                answer: 'You can cancel orders that are still pending. Visit Order History and select cancel.',
               ),
-              _FAQItem(
+              const _FAQItem(
                 question: 'What payment methods are accepted?',
                 answer: 'We accept Cash, Card, and Mobile Banking payments.',
               ),
-              _FAQItem(
+              const _FAQItem(
                 question: 'How do I add a new delivery address?',
-                answer:
-                    'Go to Saved Addresses and tap the + button to add a new address.',
+                answer: 'Go to Saved Addresses and tap the + button to add a new address.',
               ),
               const SizedBox(height: 28),
-              _buildSection('Contact Us'),
+              const Text(
+                'Contact Us',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                  color: _navy,
+                ),
+              ),
               const SizedBox(height: 12),
               _ContactCard(
                 icon: Icons.restaurant_rounded,
                 label: 'Call Restaurant',
-                value: '+880 1234 567890',
-                onTap: () => _launchPhone('+8801234567890'),
+                value: '+880 1700 000000',
+                onTap: () => _launchPhone('+8801700000000'),
               ),
               const SizedBox(height: 12),
               _ContactCard(
                 icon: Icons.email_rounded,
                 label: 'Email Support',
-                value: 'support@dhakaia.com',
-                onTap: () => _launchEmail('support@dhakaia.com'),
+                value: 'support@dhakaiadine.com',
+                onTap: () => _launchEmail('support@dhakaiadine.com'),
               ),
               const SizedBox(height: 28),
-              _buildSection('About App'),
+
+              const Text(
+                'About Dhakaia Dine',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                  color: _navy,
+                ),
+              ),
+
               const SizedBox(height: 12),
+
               Container(
-                padding: const EdgeInsets.all(16),
+                width: double.infinity,
+                padding: const EdgeInsets.all(22),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(22),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, 3),
+                      color: Colors.black.withOpacity(.05),
+                      blurRadius: 15,
+                      offset: const Offset(0, 5),
                     ),
                   ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Dhakaia Dine',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        color: _navy,
+
+                    /// Logo & App Name
+                    Row(
+                      children: [
+                        Container(
+                          width: 58,
+                          height: 58,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF4B400).withOpacity(.12),
+                            borderRadius: BorderRadius.circular(18),
+                          ),
+                          child: const Icon(
+                            Icons.restaurant_menu_rounded,
+                            size: 30,
+                            color: Color(0xFFF4B400),
+                          ),
+                        ),
+
+                        const SizedBox(width: 16),
+
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Dhakaia Dine",
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w800,
+                                  color: Color(0xFF1F2937),
+                                ),
+                              ),
+
+                              SizedBox(height: 4),
+
+                              Text(
+                                "Smart Restaurant Experience",
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Color(0xFF7A8599),
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 22),
+
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFF8E6),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: const Text(
+                        "Dhakaia Dine is a smart restaurant management and food ordering application developed as a Final Year Project using Flutter and Supabase.\n\nIt offers Home Delivery, Smart Dine-In Table Ordering, Real-Time Order Tracking, Digital Token Collection, and Restaurant Management features to provide a modern dining experience.",
+                        style: TextStyle(
+                          fontSize: 13,
+                          height: 1.7,
+                          color: Color(0xFF4B5563),
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 8),
+
+                    const SizedBox(height: 20),
+
                     const Text(
-                      'Version 1.0.0',
-                      style: TextStyle(fontSize: 14, color: Color(0xFF7A8599)),
+                      "Developed By",
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF1F2937),
+                      ),
                     ),
+
                     const SizedBox(height: 12),
-                    const Text(
-                      'Premium restaurant delivery experience at your fingertips.',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Color(0xFF3E4A63),
-                        height: 1.6,
-                      ),
+
+                    const _DeveloperTile(
+                      icon: Icons.code_rounded,
+                      name: "Sowrav Dey",
+                      role: "Lead Developer",
+                      description: "Flutter • Backend • UI/UX",
                     ),
-                    const Text(
-                      'Created by Sowrav Dey & Anika Tasnia Sultana',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Color(0xFF3E4A63),
-                        height: 1.6,
-                      ),
+
+                    const SizedBox(height: 10),
+
+                    const _DeveloperTile(
+                      icon: Icons.design_services_rounded,
+                      name: "Anika Tasnia Sadia",
+                      role: "Co-Developer",
+                      description: "System Analysis • Testing • Documentation",
                     ),
-                    const SizedBox(height: 12),
-                    Text(
-                      '© 2026 Dhakaia Dine. All rights reserved.',
-                      style: TextStyle(fontSize: 12, color: Colors.grey[400]),
+
+                    const SizedBox(height: 22),
+
+                    const Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        _TechChip("Flutter"),
+                        _TechChip("Supabase"),
+                        _TechChip("Material 3"),
+                        _TechChip("Lottie"),
+                        _TechChip("PostgreSQL"),
+                      ],
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    const Divider(),
+
+                    const SizedBox(height: 10),
+
+                    Center(
+                      child: Column(
+                        children: [
+                          Text(
+                            "Version 1.0.0",
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFFF4B400),
+                            ),
+                          ),
+
+                          SizedBox(height: 6),
+
+                          Text(
+                            "© 2026 Dhakaia Dine Team",
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFF7A8599),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -165,29 +292,13 @@ class _HelpScreenState extends State<HelpScreen>
       ),
     );
   }
-
-  Widget _buildSection(String title) => Text(
-    title,
-    style: const TextStyle(
-      fontSize: 16,
-      fontWeight: FontWeight.w700,
-      color: _navy,
-    ),
-  );
 }
 
-class _FAQItem extends StatefulWidget {
+class _FAQItem extends StatelessWidget {
   const _FAQItem({required this.question, required this.answer});
 
   final String question;
   final String answer;
-
-  @override
-  State<_FAQItem> createState() => _FAQItemState();
-}
-
-class _FAQItemState extends State<_FAQItem> {
-  bool _expanded = false;
 
   @override
   Widget build(BuildContext context) {
@@ -195,21 +306,21 @@ class _FAQItemState extends State<_FAQItem> {
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(0.02),
             blurRadius: 8,
-            offset: const Offset(0, 2),
+            offset: const Offset(0, 3),
           ),
         ],
       ),
       child: ExpansionTile(
         title: Text(
-          widget.question,
+          question,
           style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
+            fontSize: 13.5,
+            fontWeight: FontWeight.w700,
             color: Color(0xFF1F2937),
           ),
         ),
@@ -217,11 +328,12 @@ class _FAQItemState extends State<_FAQItem> {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             child: Text(
-              widget.answer,
+              answer,
               style: const TextStyle(
-                fontSize: 13,
+                fontSize: 12.5,
                 color: Color(0xFF7A8599),
-                height: 1.6,
+                fontWeight: FontWeight.w500,
+                height: 1.5,
               ),
             ),
           ),
@@ -244,6 +356,9 @@ class _ContactCard extends StatelessWidget {
   final String value;
   final VoidCallback onTap;
 
+  static const _yellow = Color(0xFFF4B400);
+  static const _navy = Color(0xFF1F2937);
+
   @override
   Widget build(BuildContext context) {
     return InkWell(
@@ -256,22 +371,22 @@ class _ContactCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withOpacity(0.03),
               blurRadius: 10,
-              offset: const Offset(0, 3),
+              offset: const Offset(0, 4),
             ),
           ],
         ),
         child: Row(
           children: [
             Container(
-              width: 48,
-              height: 48,
+              width: 44,
+              height: 44,
               decoration: BoxDecoration(
-                color: const Color(0xFFF4B400).withOpacity(0.15),
+                color: _yellow.withOpacity(0.12),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(icon, color: const Color(0xFFF4B400), size: 24),
+              child: Icon(icon, color: _yellow, size: 22),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -281,18 +396,18 @@ class _ContactCard extends StatelessWidget {
                   Text(
                     label,
                     style: const TextStyle(
-                      fontSize: 12,
+                      fontSize: 11,
                       color: Color(0xFF7A8599),
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 3),
                   Text(
                     value,
                     style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF1F2937),
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w800,
+                      color: _navy,
                     ),
                   ),
                 ],
@@ -300,10 +415,110 @@ class _ContactCard extends StatelessWidget {
             ),
             const Icon(
               Icons.arrow_forward_ios_rounded,
-              size: 16,
+              size: 14,
               color: Color(0xFFBBBBBB),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DeveloperTile extends StatelessWidget {
+  const _DeveloperTile({
+    required this.icon,
+    required this.name,
+    required this.role,
+    required this.description,
+  });
+
+  final IconData icon;
+  final String name;
+  final String role;
+  final String description;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFAF6EA),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: const Color(0xFFF4B400).withOpacity(0.15),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: const Color(0xFFF4B400), size: 22),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF1F2937),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  role,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFFF4B400),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  description,
+                  style: const TextStyle(
+                    fontSize: 11.5,
+                    color: Color(0xFF7A8599),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TechChip extends StatelessWidget {
+  const _TechChip(this.label);
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF4B400).withOpacity(0.10),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: const Color(0xFFF4B400).withOpacity(0.25),
+        ),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          color: Color(0xFFF4B400),
         ),
       ),
     );

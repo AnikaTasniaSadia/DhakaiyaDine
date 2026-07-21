@@ -9,6 +9,8 @@ import '../features/orders/order_tracking_screen.dart';
 import '../features/search/search_screen.dart';
 import '../models/food_model.dart';
 import '../models/order_model.dart';
+import '../features/admin/screens/admin_shell.dart';
+import '../features/admin/screens/role_guard.dart';
 import '../features/profile/profile_screen.dart';
 import '../features/profile/screens/order_history_screen.dart';
 import '../features/profile/screens/reviews_screen.dart';
@@ -21,8 +23,10 @@ import '../screens/auth/register_screen.dart';
 import '../screens/entryPoint/entry_point.dart';
 import '../screens/onboarding/onboarding_screen.dart';
 import '../screens/splash/splash_screen.dart';
+import '../screens/error404_screen.dart';
 import 'app_transitions.dart';
 import 'route_transitions.dart';
+
 
 class AppRouter {
   static const String splash = '/';
@@ -44,6 +48,8 @@ class AppRouter {
   static const String editProfile = '/edit-profile';
   static const String notifications = '/notifications';
   static const String help = '/help';
+  static const String adminDashboard = '/admin-dashboard';
+  static const String error404 = '/404';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -97,8 +103,12 @@ class AppRouter {
         return buildFadeSlideRoute(const NotificationScreen());
       case help:
         return buildFadeSlideRoute(const HelpScreen());
+      case adminDashboard:
+        return buildFadeSlideRoute(const RoleGuard(child: AdminShell()));
+      case error404:
+        return buildFadeSlideRoute(const Error404Screen());
       default:
-        return buildSlideFadeRoute(const SplashScreen());
+        return buildFadeSlideRoute(const Error404Screen());
     }
   }
 }

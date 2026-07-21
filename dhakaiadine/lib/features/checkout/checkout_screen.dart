@@ -83,9 +83,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        const SnackBar(
-          content: Text('Table confirmed at counter. Ready to place order.'),
-        ),
+        const SnackBar(content: Text('Table confirmed at counter. Ready to place order.')),
       );
   }
 
@@ -95,18 +93,20 @@ class _CheckoutScreenState extends State<CheckoutScreen>
   final TextEditingController _expiryController = TextEditingController();
   final TextEditingController _cvcController = TextEditingController();
   final Map<String, String?> _cardErrors = {};
+
+  // Mobile payment controllers and state
+  String? _selectedMobileProvider;
+  final TextEditingController _mobileNumberController = TextEditingController();
+  final TextEditingController _transactionIdController = TextEditingController();
+  final Map<String, String?> _mobileErrors = {};
+
   bool _isLoading = false;
 
   final List<String> _branches = const [
     'Dhanmondi',
     'Gulshan',
-    'Jatrabari',
-    'Mohammadpur',
-    'Shanirakhra'
-        'Banani',
+    'Banani',
     'Uttara',
-    'Mirpur-10',
-    'Mirpur-12',
   ];
 
   @override
@@ -130,6 +130,8 @@ class _CheckoutScreenState extends State<CheckoutScreen>
     _cardNumberController.dispose();
     _expiryController.dispose();
     _cvcController.dispose();
+    _mobileNumberController.dispose();
+    _transactionIdController.dispose();
     super.dispose();
   }
 
@@ -143,6 +145,75 @@ class _CheckoutScreenState extends State<CheckoutScreen>
         return;
       }
     }
+    // Mobile banking payment flow: validate fields, show loading dialog, wait 2 seconds, create order, show success dialog
+    if (_paymentMethod == 'mobile') {
+      _mobileErrors.clear();
+      if (_selectedMobileProvider == null) {
+        _mobileErrors['provider'] = 'Please select a mobile banking provider';
+      }
+      final mobileText = _mobileNumberController.text.trim();
+      if (mobileText.isEmpty) {
+        _mobileErrors['phone'] = 'Mobile number is required';
+      } else if (mobileText.length < 11 || !RegExp(r'^01[3-9]\d{8}$').hasMatch(mobileText)) {
+        _mobileErrors['phone'] = 'Enter a valid 11-digit mobile number';
+      }
+      if (_transactionIdController.text.trim().isEmpty) {
+        _mobileErrors['txn'] = 'Transaction ID is required';
+      }
+
+      if (_mobileErrors.isNotEmpty) {
+        setState(() {});
+        _showError(_mobileErrors.values.firstWhere((e) => e != null) ?? 'Please fix errors');
+        return;
+      }
+
+      setState(() => _isLoading = true);
+
+      // Show professional processing loading dialog
+      _showProcessingDialog();
+
+      try {
+        // Wait 2 seconds
+        await Future.delayed(const Duration(seconds: 2));
+
+        final order = await orderService.createOrder(
+          cart: cart,
+          deliveryMethod: _deliveryMethod,
+          paymentMethod: _paymentMethod,
+          branch: _deliveryMethod == 'dinein' ? _branch : null,
+          tableNumber: _deliveryMethod == 'dinein' ? _selectedTableNumber : null,
+        );
+
+        cart.clear();
+        if (!mounted) return;
+        Navigator.pop(context); // Dismiss the loading dialog
+        setState(() => _isLoading = false);
+        await _showMobileSuccessDialog(order);
+      } catch (_) {
+        // Fallback demo order for offline/demo mode
+        final demoOrder = OrderModel(
+          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          tokenNumber: 'DD1024', // Requirement: "Generate Demo Token: DD1024"
+          status: 'received',
+          total: cart.subtotal,
+          deliveryFee: (_paymentMethod == 'cash' && cart.items.isNotEmpty) ? CartService.deliveryFee : 0,
+          grandTotal: cart.subtotal + ((_paymentMethod == 'cash' && cart.items.isNotEmpty) ? CartService.deliveryFee : 0),
+          createdAt: DateTime.now(),
+          deliveryMethod: _deliveryMethod,
+          paymentMethod: _paymentMethod,
+          branch: _deliveryMethod == 'dinein' ? _branch : null,
+          tableNumber: _deliveryMethod == 'dinein' ? _selectedTableNumber : null,
+        );
+
+        cart.clear();
+        if (!mounted) return;
+        Navigator.pop(context); // Dismiss the loading dialog
+        setState(() => _isLoading = false);
+        await _showMobileSuccessDialog(demoOrder);
+      }
+      return;
+    }
+
     // Card payment flow: validate fields, show loading, then success dialog
     if (_paymentMethod == 'card') {
       _cardErrors.clear();
@@ -189,15 +260,13 @@ class _CheckoutScreenState extends State<CheckoutScreen>
           tokenNumber: 'DD${(Random().nextInt(9000) + 1000)}',
           status: 'received',
           total: cart.subtotal,
-          deliveryFee: cart.items.isEmpty ? 0 : CartService.deliveryFee,
-          grandTotal: cart.grandTotal,
+          deliveryFee: (_paymentMethod == 'cash' && cart.items.isNotEmpty) ? CartService.deliveryFee : 0,
+          grandTotal: cart.subtotal + ((_paymentMethod == 'cash' && cart.items.isNotEmpty) ? CartService.deliveryFee : 0),
           createdAt: DateTime.now(),
           deliveryMethod: _deliveryMethod,
           paymentMethod: _paymentMethod,
           branch: _deliveryMethod == 'dinein' ? _branch : null,
-          tableNumber: _deliveryMethod == 'dinein'
-              ? _selectedTableNumber
-              : null,
+          tableNumber: _deliveryMethod == 'dinein' ? _selectedTableNumber : null,
         );
 
         cart.clear();
@@ -220,7 +289,9 @@ class _CheckoutScreenState extends State<CheckoutScreen>
         deliveryMethod: _deliveryMethod,
         paymentMethod: _paymentMethod,
         branch: _deliveryMethod == 'dinein' ? _branch : null,
-        tableNumber: _deliveryMethod == 'dinein' ? _selectedTableNumber : null,
+        tableNumber: _deliveryMethod == 'dinein'
+            ? _selectedTableNumber
+            : null,
       );
 
       cart.clear();
@@ -234,8 +305,8 @@ class _CheckoutScreenState extends State<CheckoutScreen>
         tokenNumber: 'DD${(Random().nextInt(9000) + 1000)}',
         status: 'received',
         total: cart.subtotal,
-        deliveryFee: cart.items.isEmpty ? 0 : CartService.deliveryFee,
-        grandTotal: cart.grandTotal,
+        deliveryFee: (_paymentMethod == 'cash' && cart.items.isNotEmpty) ? CartService.deliveryFee : 0,
+        grandTotal: cart.subtotal + ((_paymentMethod == 'cash' && cart.items.isNotEmpty) ? CartService.deliveryFee : 0),
         createdAt: DateTime.now(),
         deliveryMethod: _deliveryMethod,
         paymentMethod: _paymentMethod,
@@ -257,6 +328,70 @@ class _CheckoutScreenState extends State<CheckoutScreen>
       barrierDismissible: false,
       builder: (context) {
         return _SuccessDialog(order: order);
+      },
+    );
+  }
+
+  Future<void> _showMobileSuccessDialog(dynamic order) async {
+    if (!mounted) return;
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return _SuccessDialog(
+          order: order,
+          title: 'Payment Successful',
+          message: 'Your order has been placed successfully.',
+          token: 'DD1024',
+        );
+      },
+    );
+  }
+
+  void _showProcessingDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFAF6EA),
+              borderRadius: BorderRadius.circular(18),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.15),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(
+                  width: 48,
+                  height: 48,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 3.6,
+                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFF4B400)),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  'Processing Payment...',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF1F2937),
+                    fontSize: 16,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
       },
     );
   }
@@ -318,26 +453,23 @@ class _CheckoutScreenState extends State<CheckoutScreen>
                 Text(
                   'Restaurant Floor Plan',
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: const Color(0xFF1F2937),
-                  ),
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF1F2937),
+                      ),
                 ),
                 const SizedBox(height: 10),
                 Text(
                   'Tap a table to reserve your seat in style.',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: const Color(0xFF6B7280),
-                  ),
+                        color: const Color(0xFF6B7280),
+                      ),
                 ),
                 const SizedBox(height: 18),
                 _buildLegendRow(),
                 const SizedBox(height: 16),
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 16,
-                    horizontal: 12,
-                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
                   decoration: BoxDecoration(
                     color: const Color(0xFFFAF6EA),
                     borderRadius: BorderRadius.circular(18),
@@ -359,10 +491,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
                         runSpacing: 14,
                         spacing: 14,
                         children: smallTables
-                            .map(
-                              (table) =>
-                                  _buildTableCard(table, BoxShape.circle, 105),
-                            )
+                            .map((table) => _buildTableCard(table, BoxShape.circle, 105))
                             .toList(),
                       ),
                       const SizedBox(height: 20),
@@ -371,10 +500,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
                         runSpacing: 14,
                         spacing: 14,
                         children: mediumTables
-                            .map(
-                              (table) =>
-                                  _buildTableCard(table, BoxShape.circle, 110),
-                            )
+                            .map((table) => _buildTableCard(table, BoxShape.circle, 110))
                             .toList(),
                       ),
                       const SizedBox(height: 18),
@@ -383,13 +509,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
                         runSpacing: 14,
                         spacing: 14,
                         children: largeTables
-                            .map(
-                              (table) => _buildTableCard(
-                                table,
-                                BoxShape.rectangle,
-                                140,
-                              ),
-                            )
+                            .map((table) => _buildTableCard(table, BoxShape.rectangle, 140))
                             .toList(),
                       ),
                       const SizedBox(height: 18),
@@ -484,7 +604,10 @@ class _CheckoutScreenState extends State<CheckoutScreen>
         Container(
           width: 12,
           height: 12,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+          ),
         ),
         const SizedBox(width: 6),
         Text(
@@ -501,15 +624,11 @@ class _CheckoutScreenState extends State<CheckoutScreen>
 
   Widget _buildTableCard(_RestaurantTable table, BoxShape shape, double size) {
     final isSelected = _selectedTableNumber == table.number;
-    final borderColor = isSelected
-        ? const Color(0xFFF4B400)
-        : Colors.transparent;
+    final borderColor = isSelected ? const Color(0xFFF4B400) : Colors.transparent;
     final backgroundColor = isSelected
         ? const Color(0xFFF4B400)
         : _tableStatusColor(table.status).withOpacity(0.2);
-    final statusColor = isSelected
-        ? const Color(0xFF1F2937)
-        : _tableStatusColor(table.status);
+    final statusColor = isSelected ? const Color(0xFF1F2937) : _tableStatusColor(table.status);
 
     return AnimatedScale(
       duration: const Duration(milliseconds: 240),
@@ -526,9 +645,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
           decoration: BoxDecoration(
             color: backgroundColor,
             shape: shape,
-            borderRadius: shape == BoxShape.rectangle
-                ? BorderRadius.circular(18)
-                : null,
+            borderRadius: shape == BoxShape.rectangle ? BorderRadius.circular(18) : null,
             border: Border.all(color: borderColor, width: 2),
             boxShadow: [
               BoxShadow(
@@ -577,8 +694,8 @@ class _CheckoutScreenState extends State<CheckoutScreen>
   @override
   Widget build(BuildContext context) {
     final cart = context.watch<CartService>();
-    final isOrderButtonDisabled =
-        _isLoading || (_deliveryMethod == 'dinein' && !_isDineInReady);
+  final isOrderButtonDisabled = _isLoading ||
+      (_deliveryMethod == 'dinein' && !_isDineInReady);
 
     return Scaffold(
       backgroundColor: const Color(0xFFFFF8E1),
@@ -639,15 +756,17 @@ class _CheckoutScreenState extends State<CheckoutScreen>
               },
               child: _paymentMethod == 'card'
                   ? _buildCardPaymentSection(context)
-                  : const SizedBox.shrink(),
+                  : (_paymentMethod == 'mobile'
+                      ? _buildMobileBankingSection(context)
+                      : const SizedBox.shrink()),
             ),
             const SizedBox(height: 20),
             _SectionTitle(title: 'Order Summary'),
             const SizedBox(height: 12),
             OrderSummaryCard(
               subtotal: cart.subtotal,
-              deliveryFee: cart.items.isEmpty ? 0 : CartService.deliveryFee,
-              grandTotal: cart.grandTotal,
+              deliveryFee: (_paymentMethod == 'cash' && cart.items.isNotEmpty) ? CartService.deliveryFee : 0,
+              grandTotal: cart.subtotal + ((_paymentMethod == 'cash' && cart.items.isNotEmpty) ? CartService.deliveryFee : 0),
             ),
             const SizedBox(height: 20),
             AbsorbPointer(
@@ -669,6 +788,217 @@ class _CheckoutScreenState extends State<CheckoutScreen>
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildMobileField(
+    String label, {
+    required TextEditingController controller,
+    String? errorText,
+    String? hintText,
+    bool readOnly = false,
+    TextInputType? keyboardType,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF1F2937),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+          decoration: BoxDecoration(
+            color: readOnly ? const Color(0xFFF3F4F6) : Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: errorText != null ? const Color(0xFFD32F2F) : const Color(0xFFECECEC),
+              width: errorText != null ? 1.5 : 1.0,
+            ),
+          ),
+          child: TextField(
+            controller: controller,
+            keyboardType: keyboardType,
+            readOnly: readOnly,
+            style: TextStyle(
+              color: readOnly ? const Color(0xFF6B7280) : const Color(0xFF1F2937),
+              fontWeight: readOnly ? FontWeight.w700 : FontWeight.normal,
+            ),
+            decoration: InputDecoration(
+              hintText: hintText,
+              border: InputBorder.none,
+              isDense: true,
+            ),
+            onChanged: (val) {
+              if (errorText != null) {
+                setState(() {
+                  _mobileErrors[label.toLowerCase()] = null;
+                });
+              }
+            },
+          ),
+        ),
+        if (errorText != null) ...[
+          const SizedBox(height: 6),
+          Text(
+            errorText,
+            style: const TextStyle(color: Color(0xFFD32F2F), fontSize: 12),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildMobileBankingSection(BuildContext context) {
+    final cart = context.watch<CartService>();
+    final grandTotal = cart.grandTotal;
+
+    return Container(
+      key: const ValueKey('mobile_section'),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 14,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Select Mobile Banking Provider',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF1F2937),
+            ),
+          ),
+          const SizedBox(height: 16),
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              childAspectRatio: 1.25,
+            ),
+            itemCount: _mobileProviders.length,
+            itemBuilder: (context, index) {
+              final provider = _mobileProviders[index];
+              final isSelected = _selectedMobileProvider == provider.name;
+              return PaymentProviderCard(
+                name: provider.name,
+                logoPath: provider.logoPath,
+                isSelected: isSelected,
+                onTap: () {
+                  setState(() {
+                    _selectedMobileProvider = provider.name;
+                    _mobileErrors['provider'] = null;
+                  });
+                },
+              );
+            },
+          ),
+          if (_mobileErrors['provider'] != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              _mobileErrors['provider']!,
+              style: const TextStyle(color: Color(0xFFD32F2F), fontSize: 12),
+            ),
+          ],
+          const SizedBox(height: 20),
+          if (_selectedMobileProvider != null) ...[
+            _buildMobileField(
+              'Mobile Number',
+              controller: _mobileNumberController,
+              hintText: '01XXXXXXXXX',
+              errorText: _mobileErrors['phone'],
+              keyboardType: TextInputType.phone,
+            ),
+            const SizedBox(height: 16),
+            _buildMobileField(
+              'Transaction ID',
+              controller: _transactionIdController,
+              hintText: 'TXN123456789',
+              errorText: _mobileErrors['txn'],
+              keyboardType: TextInputType.text,
+            ),
+            const SizedBox(height: 16),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Amount',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF1F2937),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF3F4F6),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFECECEC)),
+                  ),
+                  child: Text(
+                    '৳${grandTotal.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF6B7280),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            PaymentSummaryCard(
+              provider: _selectedMobileProvider!,
+              amount: grandTotal,
+            ),
+            const SizedBox(height: 20),
+          ],
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFF9E6),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFF4B400).withValues(alpha: 0.3)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.info_outline_rounded, color: Color(0xFFF4B400), size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'This is a demo mobile banking gateway developed for academic purposes. No real payment is processed.',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: const Color(0xFF1F2937).withValues(alpha: 0.8),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -779,11 +1109,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
           ),
           const SizedBox(height: 12),
           // Inputs
-          _buildField(
-            'Card Holder Name',
-            controller: _cardNameController,
-            keyboardType: TextInputType.name,
-          ),
+          _buildField('Card Holder Name', controller: _cardNameController, keyboardType: TextInputType.name),
           const SizedBox(height: 10),
           _buildField(
             'Card Number',
@@ -849,25 +1175,16 @@ class _CheckoutScreenState extends State<CheckoutScreen>
             onChanged: (val) {
               if (isCardNumber) {
                 final digits = val.replaceAll(RegExp(r'[^0-9]'), '');
-                final limited = digits.length > 16
-                    ? digits.substring(0, 16)
-                    : digits;
+                final limited = digits.length > 16 ? digits.substring(0, 16) : digits;
                 final groups = <String>[];
                 for (var i = 0; i < limited.length; i += 4) {
-                  groups.add(
-                    limited.substring(
-                      i,
-                      i + 4 > limited.length ? limited.length : i + 4,
-                    ),
-                  );
+                  groups.add(limited.substring(i, i + 4 > limited.length ? limited.length : i + 4));
                 }
                 final formatted = groups.join(' ');
                 if (formatted != controller.text) {
                   controller.value = TextEditingValue(
                     text: formatted,
-                    selection: TextSelection.collapsed(
-                      offset: formatted.length,
-                    ),
+                    selection: TextSelection.collapsed(offset: formatted.length),
                   );
                 }
                 setState(() {});
@@ -876,22 +1193,17 @@ class _CheckoutScreenState extends State<CheckoutScreen>
 
               if (isExpiry) {
                 final digits = val.replaceAll(RegExp(r'[^0-9]'), '');
-                final limited = digits.length > 4
-                    ? digits.substring(0, 4)
-                    : digits;
+                final limited = digits.length > 4 ? digits.substring(0, 4) : digits;
                 String formatted;
                 if (limited.length <= 2) {
                   formatted = limited;
                 } else {
-                  formatted =
-                      '${limited.substring(0, 2)}/${limited.substring(2)}';
+                  formatted = '${limited.substring(0, 2)}/${limited.substring(2)}';
                 }
                 if (formatted != controller.text) {
                   controller.value = TextEditingValue(
                     text: formatted,
-                    selection: TextSelection.collapsed(
-                      offset: formatted.length,
-                    ),
+                    selection: TextSelection.collapsed(offset: formatted.length),
                   );
                 }
                 setState(() {});
@@ -1052,48 +1364,20 @@ class _DropdownCard extends StatelessWidget {
   }
 }
 
-class _InputCard extends StatelessWidget {
-  const _InputCard({
-    required this.label,
-    required this.controller,
-    required this.hintText,
-  });
 
-  final String label;
-  final TextEditingController controller;
-  final String hintText;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: TextField(
-        controller: controller,
-        decoration: InputDecoration(
-          labelText: label,
-          hintText: hintText,
-          border: InputBorder.none,
-        ),
-      ),
-    );
-  }
-}
 
 class _SuccessDialog extends StatefulWidget {
-  const _SuccessDialog({required this.order});
+  const _SuccessDialog({
+    required this.order,
+    this.title,
+    this.message,
+    this.token,
+  });
 
   final dynamic order;
+  final String? title;
+  final String? message;
+  final String? token;
 
   @override
   State<_SuccessDialog> createState() => _SuccessDialogState();
@@ -1121,7 +1405,9 @@ class _SuccessDialogState extends State<_SuccessDialog>
 
   @override
   Widget build(BuildContext context) {
-    final token = widget.order?.tokenNumber ?? '';
+    final token = widget.token ?? widget.order?.tokenNumber ?? '';
+    final titleText = widget.title ?? 'Order Placed Successfully!';
+    final messageText = widget.message ?? 'Thank you for choosing Dhakaia Dine.';
     return Dialog(
       backgroundColor: Colors.transparent,
       child: FadeTransition(
@@ -1145,10 +1431,10 @@ class _SuccessDialogState extends State<_SuccessDialog>
                   ),
                 ),
                 const SizedBox(height: 8),
-                const Text(
-                  'Order Placed Successfully!',
+                Text(
+                  titleText,
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontWeight: FontWeight.w800,
                     fontSize: 18,
                     color: Color(0xFF1F2937),
@@ -1164,10 +1450,10 @@ class _SuccessDialogState extends State<_SuccessDialog>
                   ),
                 ),
                 const SizedBox(height: 8),
-                const Text(
-                  'Thank you for choosing Dhakaia Dine.',
+                Text(
+                  messageText,
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: Color(0xFF374151)),
+                  style: const TextStyle(color: Color(0xFF374151)),
                 ),
                 const SizedBox(height: 16),
                 Row(
@@ -1236,4 +1522,199 @@ class _OptionData {
   final String value;
   final String label;
   final IconData icon;
+}
+
+class _MobileProvider {
+  final String name;
+  final String logoPath;
+
+  const _MobileProvider({required this.name, required this.logoPath});
+}
+
+const List<_MobileProvider> _mobileProviders = [
+  _MobileProvider(name: 'bKash', logoPath: 'assets/logo/mobile banking/Bkash.png'),
+  _MobileProvider(name: 'Nagad', logoPath: 'assets/logo/mobile banking/Nagad.png'),
+  _MobileProvider(name: 'Rocket', logoPath: 'assets/logo/mobile banking/Rocket.png'),
+  _MobileProvider(name: 'Upay', logoPath: 'assets/logo/mobile banking/Upay.png'),
+];
+
+class PaymentProviderCard extends StatelessWidget {
+  const PaymentProviderCard({
+    super.key,
+    required this.name,
+    required this.logoPath,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  final String name;
+  final String logoPath;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedScale(
+      scale: isSelected ? 1.04 : 1.0,
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeOutBack,
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+          decoration: BoxDecoration(
+            color: isSelected ? const Color(0xFFFFF9E6) : Colors.white,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: isSelected ? const Color(0xFFF4B400) : const Color(0xFFECECEC),
+              width: isSelected ? 2.5 : 1.0,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(isSelected ? 0.08 : 0.04),
+                blurRadius: isSelected ? 16 : 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(18),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: onTap,
+                child: Stack(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          const Spacer(),
+                          Expanded(
+                            flex: 6,
+                            child: Align(
+                              alignment: Alignment.center,
+                              child: Image.asset(
+                                logoPath,
+                                fit: BoxFit.contain,
+                                errorBuilder: (context, error, stackTrace) {
+                                  debugPrint('Error loading asset $logoPath: $error');
+                                  return Icon(Icons.payment_rounded, color: const Color(0xFFF4B400), size: 36);
+                                },
+                              ),
+                            ),
+                          ),
+                          const Spacer(),
+                          Text(
+                            name,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF1F2937),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (isSelected)
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: Container(
+                          padding: const EdgeInsets.all(2),
+                          decoration: const BoxDecoration(
+                            color: Color(0xFFF4B400),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.check,
+                            color: Color(0xFF1F2937),
+                            size: 14,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class PaymentSummaryCard extends StatelessWidget {
+  const PaymentSummaryCard({
+    super.key,
+    required this.provider,
+    required this.amount,
+  });
+
+  final String provider;
+  final double amount;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFAF6EA),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFF4B400).withValues(alpha: 0.3), width: 1.5),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.receipt_long_rounded, color: Color(0xFFF4B400), size: 20),
+              const SizedBox(width: 8),
+              Text(
+                'Payment Summary',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF1F2937),
+                ),
+              ),
+            ],
+          ),
+          const Divider(height: 20, thickness: 1, color: Color(0xFFECECEC)),
+          _buildSummaryRow('Provider', provider),
+          const SizedBox(height: 8),
+          _buildSummaryRow('Payment Type', 'Mobile Banking'),
+          const SizedBox(height: 8),
+          _buildSummaryRow('Amount', '৳${amount.toStringAsFixed(2)}', isBold: true),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSummaryRow(String label, String value, {bool isBold = false}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            color: Color(0xFF6B7280),
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        Text(
+          value,
+          style: TextStyle(
+            color: const Color(0xFF1F2937),
+            fontSize: 13,
+            fontWeight: isBold ? FontWeight.w800 : FontWeight.w700,
+          ),
+        ),
+      ],
+    );
+  }
 }

@@ -1,0 +1,165 @@
+/* theme.css */
+
+/* Sidebar Layout */
+.wrapper {
+    display: flex;
+    width: 100%;
+    align-items: stretch;
+}
+
+#sidebar {
+    min-width: 250px;
+    max-width: 250px;
+    background: var(--bg-card);
+    color: var(--text-primary);
+    transition: all 0.3s;
+    height: 100vh;
+    position: fixed;
+    z-index: 999;
+    overflow-y: auto;
+    border-right: 1px solid var(--border-color);
+}
+
+#sidebar.active {
+    margin-left: -250px;
+}
+
+#sidebar .sidebar-header {
+    padding: 20px;
+    background: var(--bg-dark);
+    text-align: center;
+    border-bottom: 1px solid var(--border-color);
+}
+
+#sidebar .sidebar-header h3 {
+    color: var(--gold-primary);
+    font-weight: 700;
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+#sidebar ul.components {
+    padding: 20px 0;
+}
+
+#sidebar ul li a {
+    padding: 15px 20px;
+    font-size: 1.1em;
+    display: block;
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: 0.3s;
+}
+
+#sidebar ul li a:hover, #sidebar ul li.active > a {
+    color: var(--gold-primary);
+    background: var(--bg-input);
+    border-left: 4px solid var(--gold-primary);
+}
+
+#sidebar ul li a i {
+    margin-right: 10px;
+    width: 20px;
+    text-align: center;
+}
+
+/* Page Content */
+#content {
+    width: calc(100% - 250px);
+    margin-left: 250px;
+    min-height: 100vh;
+    transition: all 0.3s;
+    background-color: var(--bg-dark);
+}
+
+#content.active {
+    width: 100%;
+    margin-left: 0;
+}
+
+/* Navbar */
+.navbar-custom {
+    background-color: var(--bg-card);
+    border-bottom: 1px solid var(--border-color);
+    padding: 15px 20px;
+}
+
+.navbar-custom .btn-sidebar {
+    background: transparent;
+    border: none;
+    color: var(--gold-primary);
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+.navbar-custom .user-profile {
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Cards & Stats */
+.stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: transform 0.3s;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--gold-primary);
+}
+
+.stat-card .icon-box {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: var(--gold-muted);
+    color: var(--gold-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+}
+
+.stat-card .info {
+    text-align: right;
+}
+
+.stat-card .info h4 {
+    margin: 0;
+    font-size: 1.8rem;
+    color: var(--text-primary);
+    font-weight: 700;
+}
+
+.stat-card .info p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+/* Media Queries */
+@media (max-width: 768px) {
+    #sidebar {
+        margin-left: -250px;
+    }
+    #sidebar.active {
+        margin-left: 0;
+    }
+    #content {
+        width: 100%;
+        margin-left: 0;
+    }
+    #content.active {
+        width: calc(100% - 250px);
+        margin-left: 250px;
+        /* On small screens, showing sidebar pushes content out of view, better to overlay */
+    }
+}

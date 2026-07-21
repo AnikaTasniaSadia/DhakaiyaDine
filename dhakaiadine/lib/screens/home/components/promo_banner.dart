@@ -28,10 +28,9 @@ class _PromoBannerState extends State<PromoBanner> {
       'https://i.ibb.co/hJMSRdtY/food-web-banner-31.jpg',
       'https://i.ibb.co.com/3ycq2PVY/9950673.jpg',
       'https://i.ibb.co.com/KcCRkyYR/18774187-6025059.jpg',
-      'https://i.ibb.co.com/xt3ZvhfW/Chat-GPT-Image-Jun-30-2026-06-15-10-PM.png',
     ];
 
-    _timer = Timer.periodic(const Duration(seconds: 5), (_) {
+    _timer = Timer.periodic(const Duration(seconds: 3), (_) {
       if (!mounted) {
         return;
       }

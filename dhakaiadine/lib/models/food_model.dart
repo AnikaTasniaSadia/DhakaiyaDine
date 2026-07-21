@@ -21,17 +21,31 @@ class FoodModel {
   final String deliveryTime;
   final String category;
 
-  factory FoodModel.fromMap(Map<String, dynamic> map) {
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'description': description,
+      'imageUrl': imageUrl,
+      'price': price,
+      'discountedPrice': discountedPrice,
+      'rating': rating,
+      'deliveryTime': deliveryTime,
+      'category': category,
+    };
+  }
+
+  factory FoodModel.fromJson(Map<String, dynamic> json) {
     return FoodModel(
-      id: map['id']?.toString() ?? '',
-      name: map['name']?.toString() ?? '',
-      description: map['description']?.toString() ?? '',
-      imageUrl: map['image_url']?.toString() ?? '',
-      price: (map['price'] as num?)?.toDouble() ?? 0,
-      discountedPrice: (map['discounted_price'] as num?)?.toDouble() ?? 0,
-      rating: (map['rating'] as num?)?.toDouble() ?? 0,
-      deliveryTime: map['delivery_time']?.toString() ?? '',
-      category: map['category']?.toString() ?? '',
+      id: json['id'] as String,
+      name: json['name'] as String,
+      description: json['description'] as String,
+      imageUrl: json['imageUrl'] as String,
+      price: (json['price'] as num).toDouble(),
+      discountedPrice: (json['discountedPrice'] as num).toDouble(),
+      rating: (json['rating'] as num).toDouble(),
+      deliveryTime: json['deliveryTime'] as String,
+      category: json['category'] as String,
     );
   }
 }

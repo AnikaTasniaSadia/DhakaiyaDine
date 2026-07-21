@@ -20,6 +20,41 @@ class AuthService {
 
   final SupabaseClient _client = Supabase.instance.client;
 
+  // ── Static test user credentials ──────────────────────────────────────
+  static const String _staticEmail = 'test@gmail.com';
+  static const String _staticPassword = 'test123';
+  static const String _staticUserId = 'static-test-user-id';
+  static const String _staticUserName = 'Test User';
+  static const String _staticUserPhone = '01700000000';
+  static const String _staticUserRole = 'customer';
+
+  /// In-memory store for locally registered users.
+  /// Key = lowercase email, Value = user profile map (with password).
+  final Map<String, Map<String, dynamic>> _localUsers = {};
+
+  /// Whether the current session is a static (offline) test user.
+  bool _isStaticUser = false;
+  bool get isStaticUser => _isStaticUser;
+
+  /// The currently active local (registered) user profile, if any.
+  Map<String, dynamic>? _activeLocalUser;
+  bool get _isLocalUser => _activeLocalUser != null;
+
+  /// Returns the current user ID – works for Supabase, static, and local users.
+  String? get currentUserId {
+    if (_isStaticUser) return _staticUserId;
+    if (_activeLocalUser != null) return _activeLocalUser!['id'] as String?;
+    return _client.auth.currentUser?.id;
+  }
+
+  /// Returns the current user email – works for Supabase, static, and local users.
+  String? get currentUserEmail {
+    if (_isStaticUser) return _staticEmail;
+    if (_activeLocalUser != null) return _activeLocalUser!['email'] as String?;
+    return _client.auth.currentUser?.email;
+  }
+  // ─────────────────────────────────────────────────────────────────────
+
   Stream<AuthState> get authStateChanges => _client.auth.onAuthStateChange;
 
   Future<void> signUp({
@@ -28,44 +63,53 @@ class AuthService {
     required String phone,
     required String password,
   }) async {
-    try {
-      final response = await _client.auth.signUp(
-        email: email.trim(),
-        password: password,
-      );
+    final key = email.trim().toLowerCase();
 
-      final user = response.user;
-      if (user == null) {
-        throw const AuthFailure('Unable to create account. Please try again.');
-      }
-
-      await _client.from('users').insert({
-        'id': user.id,
-        'name': name.trim(),
-        'email': email.trim(),
-        'phone': phone.trim(),
-      });
-    } on AuthException catch (error, stackTrace) {
-      debugPrint('signUp AuthException: ${error.message}\n$stackTrace');
-      throw AuthFailure(_mapAuthException(error));
-    } on PostgrestException catch (error, stackTrace) {
-      debugPrint('signUp PostgrestException: ${error.message}\n$stackTrace');
-      throw const AuthFailure('Unable to save your profile. Please try again.');
-    } on SocketException catch (error, stackTrace) {
-      debugPrint('signUp SocketException: $error\n$stackTrace');
-      throw const AuthFailure('No internet connection. Please try again.');
-    } on TimeoutException catch (error, stackTrace) {
-      debugPrint('signUp TimeoutException: $error\n$stackTrace');
-      throw const AuthFailure('Request timed out. Please try again.');
-    } on AuthFailure {
-      rethrow;
-    } catch (error, stackTrace) {
-      debugPrint('signUp UnknownException: $error\n$stackTrace');
-      throw const AuthFailure('Something went wrong. Please try again.');
+    // Prevent duplicate local registrations
+    if (_localUsers.containsKey(key)) {
+      throw const AuthFailure('Email already in use. Please login instead.');
     }
+
+    // Store the user locally so they can log in with these credentials
+    final userId = 'local-${DateTime.now().millisecondsSinceEpoch}';
+    _localUsers[key] = {
+      'id': userId,
+      'name': name.trim(),
+      'email': email.trim(),
+      'phone': phone.trim(),
+      'password': password,
+      'role': 'customer',
+    };
+
+    debugPrint('✅ User registered locally: $key (id: $userId)');
   }
 
   Future<void> signIn({required String email, required String password}) async {
+    final key = email.trim().toLowerCase();
+
+    // ── Static test user bypass ─────────────────────────────────────────
+    if (key == _staticEmail && password == _staticPassword) {
+      _isStaticUser = true;
+      _activeLocalUser = null;
+      debugPrint('✅ Signed in as static test user ($_staticEmail)');
+      return;
+    }
+    // ────────────────────────────────────────────────────────────────────
+
+    // ── Locally registered user bypass ──────────────────────────────────
+    final localUser = _localUsers[key];
+    if (localUser != null) {
+      if (localUser['password'] == password) {
+        _isStaticUser = false;
+        _activeLocalUser = localUser;
+        debugPrint('✅ Signed in as locally registered user ($key)');
+        return;
+      } else {
+        throw const AuthFailure('Invalid email or password.');
+      }
+    }
+    // ────────────────────────────────────────────────────────────────────
+
     try {
       await _client.auth.signInWithPassword(
         email: email.trim(),
@@ -87,6 +131,15 @@ class AuthService {
   }
 
   Future<void> signOut() async {
+    // ── Static / local user sign-out ────────────────────────────────────
+    if (_isStaticUser || _isLocalUser) {
+      _isStaticUser = false;
+      _activeLocalUser = null;
+      debugPrint('✅ Local/static user signed out');
+      return;
+    }
+    // ────────────────────────────────────────────────────────────────────
+
     try {
       await _client.auth.signOut();
     } on SocketException catch (error, stackTrace) {
@@ -102,6 +155,24 @@ class AuthService {
   }
 
   Future<Map<String, dynamic>?> getUserProfile(String uid) async {
+    // ── Static test user profile ────────────────────────────────────────
+    if (_isStaticUser && uid == _staticUserId) {
+      return {
+        'id': _staticUserId,
+        'name': _staticUserName,
+        'email': _staticEmail,
+        'phone': _staticUserPhone,
+        'role': _staticUserRole,
+      };
+    }
+    // ────────────────────────────────────────────────────────────────────
+
+    // ── Locally registered user profile ─────────────────────────────────
+    if (_activeLocalUser != null && _activeLocalUser!['id'] == uid) {
+      return Map<String, dynamic>.from(_activeLocalUser!)..remove('password');
+    }
+    // ────────────────────────────────────────────────────────────────────
+
     try {
       final data = await _client
           .from('users')

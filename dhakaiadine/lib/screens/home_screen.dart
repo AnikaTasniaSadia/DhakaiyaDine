@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../services/auth_service.dart';
 import '../widgets/primary_button.dart';
-import 'login_screen.dart';
+import 'auth/login_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -25,8 +24,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<Map<String, dynamic>?> _loadProfile() async {
-    final user = Supabase.instance.client.auth.currentUser;
-    if (user == null) {
+    final uid = _authService.currentUserId;
+    if (uid == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
         _navigateToLogin();
@@ -34,7 +33,7 @@ class _HomeScreenState extends State<HomeScreen> {
       return null;
     }
 
-    return _authService.getUserProfile(user.id);
+    return _authService.getUserProfile(uid);
   }
 
   Future<void> _logout() async {
@@ -76,7 +75,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final user = Supabase.instance.client.auth.currentUser;
+    // user variable kept for backward compatibility in the build tree
+    final userEmail = _authService.currentUserEmail;
 
     return Scaffold(
       appBar: AppBar(
@@ -112,7 +112,7 @@ class _HomeScreenState extends State<HomeScreen> {
           final profile = snapshot.data;
           final name = (profile?['name'] as String?)?.trim();
           final email =
-              (profile?['email'] as String?)?.trim() ?? user?.email ?? '-';
+              (profile?['email'] as String?)?.trim() ?? userEmail ?? '-';
           final phone = (profile?['phone'] as String?)?.trim();
 
           return SingleChildScrollView(
